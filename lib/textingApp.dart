@@ -45,7 +45,7 @@ class _SimpleTextsState extends State<SimpleTexts> {
                 print('Message also contained a notification: ${message
                     .notification}');
               }
-              controller.add(message);
+              controller.add(message.data['dor_text']);
             });
       }
     }
