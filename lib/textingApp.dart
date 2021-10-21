@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
@@ -29,17 +31,41 @@ class SimpleTexts extends StatefulWidget {
 class _SimpleTextsState extends State<SimpleTexts> {
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
+  Stream<dynamic> createStream(){
+    late StreamController<dynamic> controller;
+    StreamSubscription? subscription;
+    void setFirebaseEvents() {
+      if (subscription == null) {
+        subscription =
+            FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+              print('Got a message whilst in the foreground!');
+              print('Message data: ${message.data['dor_text']}');
 
-  void setFirebaseEvents(){
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
+              if (message.notification != null) {
+                print('Message also contained a notification: ${message
+                    .notification}');
+              }
+              controller.add(message);
+            });
       }
-    });
+    }
+    void unsetFirebaseEvents(){
+      if(subscription!=null){
+        subscription!.cancel();
+        subscription = null;
+      }
+    }
+
+      controller = StreamController<dynamic>(
+          onListen: setFirebaseEvents,
+          onPause: unsetFirebaseEvents,
+          onResume: setFirebaseEvents,
+          onCancel: unsetFirebaseEvents);
+
+      return controller.stream;
+
+
+
   }
 
 
@@ -47,20 +73,26 @@ class _SimpleTextsState extends State<SimpleTexts> {
     String? token = await messaging.getToken();
     print('The token is $token');
   }
-
-  List<String> _textMessages = ['Some initial text'];
-
+  Stream<dynamic>? messagesStream;
   @override
   void initState() {
     sendFCMTokenToServer();
-    setFirebaseEvents();
+    messagesStream = createStream();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(children: _textMessages.map((text)=>Text(text)).toList(),),
+      body: //ListView(children: _textMessages.map((text)=>Text(text)).toList(),),
+      Center(
+        child: StreamBuilder(initialData: 'asd',stream: messagesStream,builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          if(snapshot.hasData)  {
+            print('dor');
+            return Text(snapshot.data);}
+          return Text('No data');
+        },),
+      )
     );
   }
 }
