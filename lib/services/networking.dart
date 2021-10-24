@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dor_chat_client/models/settings_model.dart';
+import 'package:dor_chat_client/models/users_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,14 +24,14 @@ class NetworkHelper {
 
   NetworkHelper._internal();
 
-  static Future<List<String>> getAllUsers() async {
-    Uri usersLinkUri = Uri.https(SERVER_ADDR, 'users');
+  static Future<List<InfoUser>> getAllUsers() async {
+    Uri usersLinkUri = Uri.https(SERVER_ADDR, 'users/${SettingsData().facebookId}');
     http.Response resp = await http.get(usersLinkUri);
     if (resp.statusCode == 200) {
       //TODO think how to handle network errors
-      var parsed = json.jsonDecode(resp.body);
-      //List<String> imagesLinks = parsed.cast<String>();
-      //return imagesLinks;
+      List<dynamic> parsed = json.jsonDecode(resp.body);
+      List<InfoUser> users = parsed.map((e) => InfoUser.fromJson(e)).toList();
+      return users;
     }
 
     return [];
@@ -58,6 +59,7 @@ class NetworkHelper {
       SettingsData().registered = true;
     }
   }
+
 
 
 }

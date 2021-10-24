@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/screens/signInScreen.dart';
 import 'package:dor_chat_client/textingApp.dart';
@@ -25,7 +26,7 @@ class MyHttpOverrides extends HttpOverrides {
 void main() {
   HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,));
+  runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
 }
 
 
@@ -36,6 +37,15 @@ Route _onGenerateRoute(RouteSettings settings) {
       settings: settings,
       builder: (context) {
         return MainScreen();
+      },
+    );
+  }
+
+  else if (settings.name == ChatScreen.routeName){
+    final args = settings.arguments as ChatScreenArguments;
+    return MaterialPageRoute(
+      builder: (context) {
+        return ChatScreen(args.theUser);
       },
     );
   }

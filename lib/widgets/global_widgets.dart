@@ -931,8 +931,7 @@ class ProfileImageAvatar extends StatelessWidget {
     WidgetBuilder? placholderBuilder,
     WidgetBuilder? errorBuilder,
     void Function()? onError,
-  })  : assert(url != null, 'The value of "url" cannot be null!'),
-        assert(radius == null || (minRadius == null && maxRadius == null)),
+  })  :assert(radius == null || (minRadius == null && maxRadius == null)),
         imageProvider = Image.network(
           url,
           fit: fit,
