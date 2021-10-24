@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import 'models/settings_model.dart';
+
 class TextingApp extends StatelessWidget {
   // This widget is the root of your application.
 
@@ -71,7 +73,9 @@ class _SimpleTextsState extends State<SimpleTexts> {
 
   Future<void> sendFCMTokenToServer()async{ //TODO For now print it; In the future I will actually send it to my server..
     String? token = await messaging.getToken();
-    print('The token is $token');
+    if(token!=null){
+      SettingsData().fcmToken = token;
+    }
   }
   Stream<dynamic>? messagesStream;
   @override
@@ -89,7 +93,7 @@ class _SimpleTextsState extends State<SimpleTexts> {
         child: StreamBuilder(initialData: 'asd',stream: messagesStream,builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
           if(snapshot.hasData)  {
             print('dor');
-            return Text(snapshot.data);}
+            return Text(snapshot.data,style: TextStyle(fontSize: 40),);}
           return Text('No data');
         },),
       )
