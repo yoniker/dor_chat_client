@@ -51,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
               Users().users.map((e) => ProfileDisplay(e,onTap: (){
                 //Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(e)));
                 Navigator.pushNamed(context,ChatScreen.routeName,arguments: ChatScreenArguments(e));
-              },)).toList()
+              },radius: 50,)).toList()
             ,),
           ),
         ],

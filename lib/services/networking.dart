@@ -38,6 +38,22 @@ class NetworkHelper {
   }
 
 
+  static Future<List<InfoConversation>> getAllConversations() async {
+    Uri chatDataLinkUri = Uri.https(SERVER_ADDR, 'chatData/${SettingsData().facebookId}');
+    http.Response resp = await http.get(chatDataLinkUri);
+    if (resp.statusCode == 200) {
+      //TODO think how to handle network errors
+      List<dynamic> parsed = json.jsonDecode(resp.body);
+      print('Dor');
+      //List<InfoUser> users = parsed.map((e) => InfoUser.fromJson(e)).toList();
+      //return users;
+      return [];
+    }
+
+    return [];
+  }
+
+
 
 
 
@@ -58,6 +74,22 @@ class NetworkHelper {
     if (response.statusCode == 200){
       SettingsData().registered = true;
     }
+  }
+
+  Future<InfoConversation> startConversation(String facebookUserId,String startingConversationContent) async{
+    Map<String, String> toSend = {
+      'other_user_id':facebookUserId,
+      'first_message':startingConversationContent
+    };
+    String encoded = jsonEncode(toSend);
+    Uri postConversationUri =
+    Uri.https(SERVER_ADDR, '/start_conversation/${SettingsData().facebookId}');
+    print('starting conversation...');
+    http.Response response = await http.post(postConversationUri, body: encoded);
+    print('Dor is the king');
+    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participants: [facebookUserId]);
+
+
   }
 
 
