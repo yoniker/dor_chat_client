@@ -1,5 +1,5 @@
 import 'package:dor_chat_client/models/settings_model.dart';
-import 'package:dor_chat_client/models/users_model.dart';
+import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
@@ -21,8 +21,8 @@ class _MainScreenState extends State<MainScreen> {
   });}
 
   void getUsers(){
-    Users().addListener(listen);
-    Users().updateUsers();
+    ChatData().addListener(listen);
+    ChatData().updateUsers();
     return;
   }
 
@@ -48,7 +48,7 @@ class _MainScreenState extends State<MainScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children:
-              Users().users.map((e) => ProfileDisplay(e,onTap: (){
+              ChatData().users.map((e) => ProfileDisplay(e,onTap: (){
                 //Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(e)));
                 Navigator.pushNamed(context,ChatScreen.routeName,arguments: ChatScreenArguments(e));
               },radius: 50,)).toList()
@@ -61,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    Users().removeListener(listen);
+    ChatData().removeListener(listen);
     super.dispose();
   }
 }

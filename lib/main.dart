@@ -83,11 +83,12 @@ class _AppState extends State<App> {
   /// directly inside [build].
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
-  Future<void> updateFcmToken()async{ //TODO For now print it; In the future I will actually send it to my server..
+  Future<void> updateFcmToken()async{
 
     while(true) {
       try{
       String? token = await FirebaseMessaging.instance.getToken();
+      print('Got the token $token');
       if (token != null) {
         await SettingsData().readSettingsFromShared();
         if (SettingsData().fcmToken != token) {

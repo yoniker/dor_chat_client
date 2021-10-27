@@ -1,5 +1,5 @@
 import 'package:dor_chat_client/models/infoUser.dart';
-import 'package:dor_chat_client/models/users_model.dart';
+import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +30,9 @@ class _ChatScreenState extends State<ChatScreen> {
   List<types.Message> _mockMessages = <types.Message>[];
   List<types.User> _mockUsersInChat=[];
 
+
   void updateChatData(){
-    _mockUsersInChat = Users().users.map((user) => types.User(id:user.facebookId,firstName: user.name,imageUrl: user.imageUrl)).toList();
+    _mockUsersInChat = ChatData().users.map((user) => types.User(id:user.facebookId,firstName: user.name,imageUrl: user.imageUrl)).toList();
     if(_mockUsersInChat.length>2){
       _mockMessages =[
         types.TextMessage(author: _mockUsersInChat[0],id:'Dummy Message Id',text:'Hi I am user 1',createdAt: 1635265755000,status:types.Status.seen),
@@ -40,8 +41,6 @@ class _ChatScreenState extends State<ChatScreen> {
         types.TextMessage(author: _mockUsersInChat[2],id:'Dummy Message Id',text:'Hi I am user 3',createdAt: 1635265755000-3600000,status:types.Status.seen),
       ];}
   }
-
-
 
   void listen(){setState(() {
     updateChatData();
@@ -52,8 +51,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     updateChatData();
-    Users().addListener(listen);
-    //Users().startConversation(widget.theUser.facebookId,"{type:'text',content:'Dummy message ${DateTime.now().toString()}'}");
+    ChatData().addListener(listen);
+    ChatData().startConversation(widget.theUser.facebookId,"{type:'text',content:'Dummy message ${DateTime.now().toString()}'}");
     super.initState();
   }
 
@@ -64,7 +63,11 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: CustomAppBar(
         hasTopPadding: true,
         hasBackButton: true,
-        customTitle: ProfileDisplay(widget.theUser,minRadius: 10,maxRadius: 20,direction: Axis.horizontal,),
+        customTitle: Row(
+          children: [Text('send Enabled'),
+            ProfileDisplay(widget.theUser,minRadius: 10,maxRadius: 20,direction: Axis.horizontal,),
+          ],
+        ),
       ),
       body: Chat(
         user: _mockUsersInChat.length ==0? dummyUser2:_mockUsersInChat[1],
@@ -78,7 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    Users().removeListener(listen);
+    ChatData().removeListener(listen);
     super.dispose();
   }
 }

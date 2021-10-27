@@ -8,32 +8,35 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 
+class ChatData extends ChangeNotifier{
+
+  static const CONVERSATIONS_BOXNAME = 'conversations';
+  static const USERS_BOXNAME = 'users';
 
 
-
-
-
-
-
-class Users extends ChangeNotifier{
-
-
-
+  Future<void> initDatabase() async{
+    conversationsBox = await Hive.openBox(CONVERSATIONS_BOXNAME);
+    usersBox = await Hive.openBox(USERS_BOXNAME);
+  }
   //Make it a singleton
-  Users._privateConstructor() {
+  ChatData._privateConstructor() {
+    initDatabase();
     _fcmStream.listen((message) {
-      print('Got the message $message');
+      print('Got the message $message'); //TODO update database,datastructure and listeners
+      print('king');
     });
   }
-  static final Users _instance = Users._privateConstructor();
+  static final ChatData _instance = ChatData._privateConstructor();
 
-  factory Users() {
+  factory ChatData() {
     return _instance;
   }
 
   List <InfoUser> _usersAvailableChat = [];
   List <InfoConversation> _conversations = [];
   Stream<dynamic> _fcmStream = createStream();
+  late Box conversationsBox;
+  late Box usersBox;
 
   updateUsers() async{
     List<InfoUser> gottenUsers = await NetworkHelper.getAllUsers();
@@ -66,9 +69,7 @@ class Users extends ChangeNotifier{
       if (subscription == null) {
         subscription =
             FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-              print('Got a message whilst in the foreground!');
-              print('Message data: ${message.data['dor_text']}');
-
+              print('Got a message while in the foreground!');
               if (message.notification != null) {
                 print('Message also contained a notification: ${message
                     .notification}');
