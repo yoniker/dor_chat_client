@@ -1,53 +1,26 @@
 import 'dart:async';
 
+import 'package:dor_chat_client/models/infoConversation.dart';
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/services/networking.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-
-class InfoUser{
-  String imageUrl;
-  String name;
-  String facebookId;
-  InfoUser({required this.imageUrl,required this.name,required this.facebookId});
-  InfoUser.fromJson(Map json) :
-        this.facebookId = json['facebook_id']??'',
-        this.imageUrl = json['facebook_profile_image_url'],
-        this.name = json['name'];
-
-}
+import 'package:hive_flutter/hive_flutter.dart';
 
 
-class InfoConversation{
-  String conversationId;
-  double lastChangedTime;
-  double creationTime;
-  List<String> participants;
-  InfoConversation({required this.conversationId,required this.lastChangedTime,required this.creationTime,required this.participants});
-  InfoConversation.fromJson(Map json) :
-      this.creationTime = json['creation_time']?? 0 ,
-      this.lastChangedTime = json['last_changed_time'] ?? 0,
-      this.conversationId = json['conversation_id'] ?? '',
-      this.participants = json['participants']; //TODO further decode that list from json
-  
-}
 
-class InfoMessage {
-  final String content;
-  final String messageId;
-  final String conversationId;
-  double? addedDate;
-  double? changedDate;
-  final String userId;
-  final String creatorName;
 
-  InfoMessage(
-      {required this.content, required this.messageId, required this.conversationId,
-        this.addedDate, required this.userId, required this.creatorName});
-}
+
+
+
+
 
 class Users extends ChangeNotifier{
+
+
+
   //Make it a singleton
-  Users._privateConstructor(){
+  Users._privateConstructor() {
     _fcmStream.listen((message) {
       print('Got the message $message');
     });
@@ -122,5 +95,7 @@ class Users extends ChangeNotifier{
 
 
   }
+
+
 
 }

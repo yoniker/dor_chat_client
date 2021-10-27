@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:dor_chat_client/models/infoConversation.dart';
+import 'package:dor_chat_client/models/infoMessage.dart';
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/screens/signInScreen.dart';
@@ -9,7 +12,7 @@ import 'package:flutter/material.dart';
 
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'models/settings_model.dart';
 
 
@@ -23,9 +26,14 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-void main() {
+void main() async{
   HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
+  Hive.registerAdapter(InfoMessageAdapter());
+  Hive.registerAdapter(InfoConversationAdapter());
+
   runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
 }
 

@@ -5,6 +5,8 @@ import 'dart:convert' as json;
 import 'dart:io';
 import 'dart:math';
 
+import 'package:dor_chat_client/models/infoConversation.dart';
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/users_model.dart';
 import 'package:flutter/material.dart';
@@ -87,7 +89,7 @@ class NetworkHelper {
     print('starting conversation...');
     http.Response response = await http.post(postConversationUri, body: encoded);
     print('Dor is the king');
-    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participants: [facebookUserId]);
+    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participants: [facebookUserId],messages: []);
 
 
   }

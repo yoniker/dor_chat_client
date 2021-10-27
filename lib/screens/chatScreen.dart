@@ -1,3 +1,4 @@
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/users_model.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';

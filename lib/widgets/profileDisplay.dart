@@ -1,3 +1,4 @@
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/users_model.dart';
 import 'package:flutter/material.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
