@@ -22,15 +22,17 @@ class InfoMessageAdapter extends TypeAdapter<InfoMessage> {
       conversationId: fields[2] as String,
       addedDate: fields[3] as double?,
       userId: fields[5] as String,
-      creatorName: fields[6] as String,
-      messageStatus: fields[7] as String?,
-    )..changedDate = fields[4] as double?;
+      messageStatus: fields[6] as String?,
+      changedDate: fields[4] as double?,
+      readTime: fields[8] as double?,
+      sentTime: fields[7] as double?,
+    );
   }
 
   @override
   void write(BinaryWriter writer, InfoMessage obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.content)
       ..writeByte(1)
@@ -44,9 +46,11 @@ class InfoMessageAdapter extends TypeAdapter<InfoMessage> {
       ..writeByte(5)
       ..write(obj.userId)
       ..writeByte(6)
-      ..write(obj.creatorName)
+      ..write(obj.messageStatus)
       ..writeByte(7)
-      ..write(obj.messageStatus);
+      ..write(obj.sentTime)
+      ..writeByte(8)
+      ..write(obj.readTime);
   }
 
   @override

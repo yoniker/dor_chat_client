@@ -89,7 +89,7 @@ class NetworkHelper {
     print('starting conversation...');
     http.Response response = await http.post(postConversationUri, body: encoded);
     print('Dor is the king');
-    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participants: [facebookUserId],messages: []);
+    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participantsIds: [facebookUserId],messages: []);
 
 
   }

@@ -63,11 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: CustomAppBar(
         hasTopPadding: true,
         hasBackButton: true,
-        customTitle: Row(
-          children: [Text('send Enabled'),
-            ProfileDisplay(widget.theUser,minRadius: 10,maxRadius: 20,direction: Axis.horizontal,),
-          ],
-        ),
+        customTitle: ProfileDisplay(widget.theUser,minRadius: 10,maxRadius: 20,direction: Axis.horizontal,),
       ),
       body: Chat(
         user: _mockUsersInChat.length ==0? dummyUser2:_mockUsersInChat[1],

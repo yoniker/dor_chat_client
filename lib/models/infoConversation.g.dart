@@ -20,7 +20,7 @@ class InfoConversationAdapter extends TypeAdapter<InfoConversation> {
       conversationId: fields[0] as String,
       lastChangedTime: fields[1] as double,
       creationTime: fields[2] as double,
-      participants: (fields[3] as List).cast<String>(),
+      participantsIds: (fields[3] as List).cast<String>(),
       messages: (fields[4] as List).cast<InfoMessage>(),
     );
   }
@@ -36,7 +36,7 @@ class InfoConversationAdapter extends TypeAdapter<InfoConversation> {
       ..writeByte(2)
       ..write(obj.creationTime)
       ..writeByte(3)
-      ..write(obj.participants)
+      ..write(obj.participantsIds)
       ..writeByte(4)
       ..write(obj.messages);
   }

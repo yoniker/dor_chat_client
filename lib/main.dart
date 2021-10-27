@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
 import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
@@ -33,6 +34,8 @@ void main() async{
   Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
   Hive.registerAdapter(InfoMessageAdapter());
   Hive.registerAdapter(InfoConversationAdapter());
+  await Hive.openBox<InfoConversation>(ChatData.CONVERSATIONS_BOXNAME);
+  await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
 
   runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
 }

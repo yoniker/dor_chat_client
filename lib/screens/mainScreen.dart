@@ -22,7 +22,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void getUsers(){
     ChatData().addListener(listen);
-    ChatData().updateUsers();
+    ChatData().getUsersFromServer();
     return;
   }
 

@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:dor_chat_client/models/infoConversation.dart';
+import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
+import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/services/networking.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:convert';
 
 
 class ChatData extends ChangeNotifier{
@@ -14,42 +18,81 @@ class ChatData extends ChangeNotifier{
   static const USERS_BOXNAME = 'users';
 
 
-  Future<void> initDatabase() async{
-    conversationsBox = await Hive.openBox(CONVERSATIONS_BOXNAME);
-    usersBox = await Hive.openBox(USERS_BOXNAME);
+  void updateDatabaseOnMessage(message){
+      final String senderId = message['facebook_id'];
+      if(senderId!=SettingsData().facebookId){ //Update Users Box
+        final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
+        usersBox.put(sender.facebookId, sender); //Update users box
+      }
+
+      final String conversationId = message['conversation_id'];
+      final InfoMessage messageReceived = InfoMessage.fromJson(message);
+      final InfoConversation? existingConversation = conversationsBox.get(conversationId);
+      if(existingConversation==null){
+        print('Conversation doesnt exist. creating conversation..');
+        final messages = [messageReceived];
+        final List<String> participantsIds = List.from(Set.from([senderId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
+        conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
+      }
+      else{//Conversation exists so update messages and participants etc
+        print('Conversation exists. Updating conversation');
+        var messages = existingConversation.messages;
+        final int indexOldMessage = messages.indexWhere((message) => message.messageId == messageReceived.messageId);
+        if(indexOldMessage<0){
+          print("Message didn't exist");
+          messages.insert(0, messageReceived);
+          messages.sort((messageA,messageB)=> (messageB.sentTime??0)>(messageA.sentTime??0)?1:-1);
+        }
+
+        else{
+          print('Message existed so just updating message...');
+          messages[indexOldMessage] = messageReceived;
+        }
+        List<String> participantsIds = existingConversation.participantsIds;
+        participantsIds = List.from(Set.from([SettingsData().facebookId,senderId,...participantsIds]));
+        InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
+            lastChangedTime: existingConversation.lastChangedTime, creationTime: existingConversation.creationTime, participantsIds: participantsIds, messages: messages); //TODO notice that changed time is complete bullshit for now
+        conversationsBox.put(conversationId,updatedConversation);
+
+      }
+      notifyListeners();
   }
+
+
   //Make it a singleton
   ChatData._privateConstructor() {
-    initDatabase();
-    _fcmStream.listen((message) {
-      print('Got the message $message'); //TODO update database,datastructure and listeners
-      print('king');
-    });
+    _fcmStream.listen(updateDatabaseOnMessage);
   }
   static final ChatData _instance = ChatData._privateConstructor();
+  
+  
+  void listenConversation(String conversationId,VoidCallback listener){
+    conversationsBox.listenable(keys:[conversationId]).addListener(listener);
+  }
+
+  void removeListnerConversation(String conversationId,VoidCallback listener){
+    conversationsBox.listenable(keys:[conversationId]).removeListener(listener);
+  }
 
   factory ChatData() {
     return _instance;
   }
-
-  List <InfoUser> _usersAvailableChat = [];
   List <InfoConversation> _conversations = [];
   Stream<dynamic> _fcmStream = createStream();
-  late Box conversationsBox;
-  late Box usersBox;
+  Box<InfoConversation> conversationsBox = Hive.box(CONVERSATIONS_BOXNAME);
+  Box<InfoUser> usersBox = Hive.box(USERS_BOXNAME);
 
-  updateUsers() async{
+  getUsersFromServer() async{
     List<InfoUser> gottenUsers = await NetworkHelper.getAllUsers();
-    _usersAvailableChat = gottenUsers;
+    for(var user in gottenUsers){
+      usersBox.put(user.facebookId,user);
+    }
     notifyListeners();
   }
 
-  updateConversations() async{
-    List<InfoConversation> gottenConversations = await NetworkHelper.getAllConversations();
-  }
 
   Future<InfoConversation> startConversation(String facebookUserId,String startingMessageContent) async{
-    List existingConversations = _conversations.where((conversation) => conversation.participants.length == 1 && conversation.participants.first == facebookUserId).toList();
+    List existingConversations = _conversations.where((conversation) => conversation.participantsIds.length == 1 && conversation.participantsIds.first == facebookUserId).toList();
     if(existingConversations.length>=1) {return existingConversations.first;}
     return await NetworkHelper().startConversation(facebookUserId,startingMessageContent);
 
@@ -58,7 +101,7 @@ class ChatData extends ChangeNotifier{
 
 
   List<InfoUser> get users{
-    return _usersAvailableChat;
+    return List.unmodifiable(usersBox.values);
   }
 
 
