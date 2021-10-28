@@ -1,5 +1,4 @@
 import 'package:dor_chat_client/models/infoUser.dart';
-import 'package:dor_chat_client/models/chatData.dart';
 import 'package:flutter/material.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
 

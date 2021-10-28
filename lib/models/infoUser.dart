@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 part 'infoUser.g.dart';
 
 @HiveType(typeId : 0)
@@ -14,5 +15,10 @@ class InfoUser{
         this.facebookId = json['facebook_id']??'',
         this.imageUrl = json['facebook_profile_image_url'],
         this.name = json['name'];
+
+
+  types.User toUiUser(){
+    return types.User(id:facebookId,firstName:name,imageUrl: imageUrl);
+  }
 
 }

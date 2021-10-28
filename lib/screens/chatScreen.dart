@@ -1,10 +1,13 @@
+import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/chatData.dart';
+import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'dart:convert';
 
 
 class ChatScreenArguments {
@@ -14,8 +17,20 @@ class ChatScreenArguments {
 }
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen(this.theUser,{Key? key}) : super(key: key);
+   ChatScreen(this.theUser,{Key? key}) : conversationId='',super(key: key){
+     String userId1 = SettingsData().facebookId;
+     String userId2 = theUser.facebookId;
+     if (userId1 .compareTo(userId1)>0){
+       var temp = userId1; //Swap...
+       userId1 = userId2;
+       userId2=temp;
+     }
+     conversationId =  'conversation_${userId1}_with_$userId2';
+  }
   static const String routeName = '/chat_screen';
+   String conversationId ;
+
+
 
   final InfoUser theUser;
 
@@ -27,19 +42,15 @@ class _ChatScreenState extends State<ChatScreen> {
 
   types.User dummyUser = types.User(id:'Dummyid',imageUrl: 'https://picsum.photos/id/237/200/300');
   types.User dummyUser2 = types.User(id:'Dummyid2',imageUrl: 'https://picsum.photos/id/238/200/300');
-  List<types.Message> _mockMessages = <types.Message>[];
+  List<types.Message> _messages = <types.Message>[];
   List<types.User> _mockUsersInChat=[];
 
 
-  void updateChatData(){
-    _mockUsersInChat = ChatData().users.map((user) => types.User(id:user.facebookId,firstName: user.name,imageUrl: user.imageUrl)).toList();
-    if(_mockUsersInChat.length>2){
-      _mockMessages =[
-        types.TextMessage(author: _mockUsersInChat[0],id:'Dummy Message Id',text:'Hi I am user 1',createdAt: 1635265755000,status:types.Status.seen),
-    types.TextMessage(author: _mockUsersInChat[1],id:'Dummy Message Id',text:'Hi I am user 2 Again!!',createdAt: 1635265755000,status:types.Status.delivered),
-    types.TextMessage(author: _mockUsersInChat[1],id:'Dummy Message Id',text:'Hi I am user 2',createdAt: 1635265755000-(3600000~/2),status:types.Status.seen),
-        types.TextMessage(author: _mockUsersInChat[2],id:'Dummy Message Id',text:'Hi I am user 3',createdAt: 1635265755000-3600000,status:types.Status.seen),
-      ];}
+  void updateChatData() {
+    List<InfoMessage> currentChatMessages = ChatData().messagesInConversation(
+        widget.conversationId);
+    _messages = currentChatMessages.map((message) => message.toUiMessage()).toList();
+
   }
 
   void listen(){setState(() {
@@ -51,8 +62,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     updateChatData();
-    ChatData().addListener(listen);
-    ChatData().startConversation(widget.theUser.facebookId,"{type:'text',content:'Dummy message ${DateTime.now().toString()}'}");
+    //ChatData().addListener(listen);
+    ChatData().listenConversation(widget.conversationId,listen);
+    ChatData().startConversation(widget.theUser.facebookId,
+        jsonEncode({"type":"text","content":"Kaki message ${DateTime.now().toString()}"}));
     super.initState();
   }
 
@@ -66,10 +79,11 @@ class _ChatScreenState extends State<ChatScreen> {
         customTitle: ProfileDisplay(widget.theUser,minRadius: 10,maxRadius: 20,direction: Axis.horizontal,),
       ),
       body: Chat(
-        user: _mockUsersInChat.length ==0? dummyUser2:_mockUsersInChat[1],
+        user: types.User(id: SettingsData().facebookId),
           showUserAvatars:true,
         onSendPressed: (text){},
-        messages: _mockMessages,
+        messages: _messages,
+
 
       ),
     );
@@ -77,7 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    ChatData().removeListener(listen);
+    ChatData().removeListnerConversation(widget.conversationId,listen);
     super.dispose();
   }
 }

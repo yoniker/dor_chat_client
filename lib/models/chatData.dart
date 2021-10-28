@@ -104,6 +104,16 @@ class ChatData extends ChangeNotifier{
     return List.unmodifiable(usersBox.values);
   }
 
+  InfoUser? getUserById(String userId){
+    return usersBox.get(userId);
+  }
+
+  List<InfoMessage> messagesInConversation(String conversationId){
+    InfoConversation? foundConversation = conversationsBox.get(conversationId);
+    if(foundConversation==null){return [];}
+    return foundConversation.messages;
+  }
+
 
   static Stream<dynamic> createStream(){
     late StreamController<dynamic> controller;

@@ -7,7 +7,6 @@ import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/screens/signInScreen.dart';
-import 'package:dor_chat_client/textingApp.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
