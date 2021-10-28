@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:dor_chat_client/models/infoConversation.dart';
+import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/chatData.dart';
@@ -59,7 +60,7 @@ class NetworkHelper {
 
 
 
-  postUserSettings() async {
+  static postUserSettings() async {
     SettingsData settings = SettingsData();
     Map<String, String> toSend = {
       SettingsData.NAME_KEY: settings.name,
@@ -78,19 +79,26 @@ class NetworkHelper {
     }
   }
 
-  Future<InfoConversation> startConversation(String facebookUserId,String startingConversationContent) async{
+  static Future<void> sendMessage(String facebookUserId,String startingConversationContent) async{
     Map<String, String> toSend = {
       'other_user_id':facebookUserId,
       'first_message':startingConversationContent
     };
     String encoded = jsonEncode(toSend);
     Uri postConversationUri =
-    Uri.https(SERVER_ADDR, '/start_conversation/${SettingsData().facebookId}');
+    Uri.https(SERVER_ADDR, '/send_message/${SettingsData().facebookId}');
     print('starting conversation...');
     http.Response response = await http.post(postConversationUri, body: encoded);
     print('Dor is the king');
-    return InfoConversation(conversationId: 'Will get from server', lastChangedTime: 0, creationTime: 0, participantsIds: [facebookUserId],messages: []);
+  }
 
+  static Future<List<InfoMessage>> syncChatData()async{
+    print('going to sync with ${SettingsData().lastSync}');
+    Uri syncChatDataUri = Uri.https(SERVER_ADDR, '/sync/${SettingsData().facebookId}/${SettingsData().lastSync}');
+    http.Response response = await http.get(syncChatDataUri);
+    List<dynamic> unparsedMessages = json.jsonDecode(response.body);
+    List<InfoMessage> messages = unparsedMessages.map((message) => InfoMessage.fromJson(message)).toList();
+    return messages;
 
   }
 

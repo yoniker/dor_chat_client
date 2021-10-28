@@ -32,7 +32,14 @@ class InfoMessage {
       {required this.content, required this.messageId, required this.conversationId,
         this.addedDate, required this.userId,this.messageStatus,this.changedDate,this.readTime,this.sentTime});
   InfoMessage.fromJson(Map json) :
-  content= json['content'], messageId=json['message_id'], conversationId=json['conversation_id'], userId=json['facebook_id'],changedDate=double.parse(json['changed_date']),readTime=double.parse(json['read_date']),messageStatus=json['status'],sentTime=double.parse(json['sent_date']);
+  content= json['content'],
+        messageId=json['message_id'],
+        conversationId=json['conversation_id'],
+        userId=json['facebook_id'],
+        changedDate=json['changed_date'] is String? double.parse(json['changed_date']):json['changed_date'], //Had to convert every field on FCM message to string in order to send so sometimes it's a string and sometimes a double..
+        readTime=json['read_date'] is String ? double.parse(json['read_date']) : json['read_date'],
+        messageStatus=json['status'],
+        sentTime=json['sent_date'] is String ? double.parse(json['sent_date']) : json['sent_date'];
 
   types.TextMessage toUiMessage(){
     InfoUser? author = ChatData().getUserById(userId);

@@ -11,6 +11,7 @@ class SettingsData extends ChangeNotifier{
   static const String FACEBOOK_PROFILE_IMAGE_URL_KEY = 'facebook_profile_image_url';
   static const String FCM_TOKEN_KEY = 'fcm_token';
   static const String REGISTERED_KEY = 'is_registered';
+  static const String LAST_SYNC_KEY = 'last_sync';
   static const _debounceSettingsTime = Duration(seconds: 2); //Debounce time such that we notify listeners
   String _name='';
   String _facebookId='';
@@ -18,6 +19,7 @@ class SettingsData extends ChangeNotifier{
   String _fcmToken = '';
   bool _readFromShared=false;
   bool _registered = false;
+  double _lastSync = 0;
   Timer? _debounce;
 
   SettingsData._privateConstructor(){
@@ -104,9 +106,20 @@ class SettingsData extends ChangeNotifier{
     savePreferences(REGISTERED_KEY, newRegistered,sendServer: false);
   }
 
+  double get lastSync{
+    return _lastSync;
+  }
+
+  set lastSync(double newLastSync){
+    _lastSync = newLastSync;
+    savePreferences(LAST_SYNC_KEY, newLastSync,sendServer: false);
+  }
+
   bool get ready{
     return _readFromShared;
   }
+
+
 
 
 
@@ -116,7 +129,7 @@ class SettingsData extends ChangeNotifier{
     if(sendServer) {
       _debounce = Timer(_debounceSettingsTime, () async {
         if (canRegister()) {
-          await NetworkHelper().postUserSettings();
+          await NetworkHelper.postUserSettings();
         }
       });
     }

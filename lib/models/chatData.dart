@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'dart:math';
+import 'package:tuple/tuple.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
 import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
@@ -7,6 +8,7 @@ import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/services/networking.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
@@ -16,62 +18,96 @@ class ChatData extends ChangeNotifier{
 
   static const CONVERSATIONS_BOXNAME = 'conversations';
   static const USERS_BOXNAME = 'users';
+  Map<String,Tuple2<ValueListenable<Box>,int>> listenedValues = {};
 
 
-  void updateDatabaseOnMessage(message){
+  void addMessageToDB(InfoMessage messageReceived){
+    final String conversationId = messageReceived.conversationId;
+    final InfoConversation? existingConversation = conversationsBox.get(conversationId);
+    if(existingConversation==null){
+      print('Conversation doesnt exist. creating conversation..');
+      final messages = [messageReceived];
+      final List<String> participantsIds = List.from(Set.from([messageReceived.userId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
+      conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
+    }
+    else{//Conversation exists so update messages and participants etc
+      print('Conversation exists. Updating conversation');
+      var messages = existingConversation.messages;
+      final int indexOldMessage = messages.indexWhere((message) => message.messageId == messageReceived.messageId);
+      if(indexOldMessage<0){
+        print("Message didn't exist");
+        messages.insert(0, messageReceived);
+        messages.sort((messageA,messageB)=> (messageB.sentTime??0)>(messageA.sentTime??0)?1:-1);
+      }
+
+      else{
+        print('Message existed so just updating message...');
+        if(messages[indexOldMessage]!=messageReceived)
+        {
+          messages[indexOldMessage] = messageReceived;}
+      }
+      List<String> participantsIds = existingConversation.participantsIds;
+      participantsIds = List.from(Set.from([SettingsData().facebookId,messageReceived.userId,...participantsIds]));
+      InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
+          lastChangedTime: existingConversation.lastChangedTime, creationTime: existingConversation.creationTime, participantsIds: participantsIds, messages: messages); //TODO notice that changed time is complete bullshit for now
+      conversationsBox.put(conversationId,updatedConversation);
+
+    }
+  }
+
+  void updateDatabaseOnMessage(message) {
       final String senderId = message['facebook_id'];
       if(senderId!=SettingsData().facebookId){ //Update Users Box
         final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
         usersBox.put(sender.facebookId, sender); //Update users box
       }
-
-      final String conversationId = message['conversation_id'];
       final InfoMessage messageReceived = InfoMessage.fromJson(message);
-      final InfoConversation? existingConversation = conversationsBox.get(conversationId);
-      if(existingConversation==null){
-        print('Conversation doesnt exist. creating conversation..');
-        final messages = [messageReceived];
-        final List<String> participantsIds = List.from(Set.from([senderId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
-        conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
-      }
-      else{//Conversation exists so update messages and participants etc
-        print('Conversation exists. Updating conversation');
-        var messages = existingConversation.messages;
-        final int indexOldMessage = messages.indexWhere((message) => message.messageId == messageReceived.messageId);
-        if(indexOldMessage<0){
-          print("Message didn't exist");
-          messages.insert(0, messageReceived);
-          messages.sort((messageA,messageB)=> (messageB.sentTime??0)>(messageA.sentTime??0)?1:-1);
-        }
-
-        else{
-          print('Message existed so just updating message...');
-          messages[indexOldMessage] = messageReceived;
-        }
-        List<String> participantsIds = existingConversation.participantsIds;
-        participantsIds = List.from(Set.from([SettingsData().facebookId,senderId,...participantsIds]));
-        InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
-            lastChangedTime: existingConversation.lastChangedTime, creationTime: existingConversation.creationTime, participantsIds: participantsIds, messages: messages); //TODO notice that changed time is complete bullshit for now
-        conversationsBox.put(conversationId,updatedConversation);
-
-      }
+      addMessageToDB(messageReceived);
+      //await syncWithServer();
       notifyListeners();
+  }
+
+  Future<void> syncWithServer() async{
+    List<InfoMessage> newMessages = await NetworkHelper.syncChatData();
+    print('got ${newMessages.length} new messages from server while syncing');
+    double maxTimestampSeen =0.0;
+    for(final message in newMessages){
+      addMessageToDB(message);
+      maxTimestampSeen = max(maxTimestampSeen,message.changedDate??message.sentTime??0);
+    }
+    if(SettingsData().lastSync<maxTimestampSeen){
+      SettingsData().lastSync = maxTimestampSeen;
+    }
   }
 
 
   //Make it a singleton
   ChatData._privateConstructor() {
     _fcmStream.listen(updateDatabaseOnMessage);
+    syncWithServer(); //Sync with the server (once,it's a singleton..) as soon as the app starts
   }
   static final ChatData _instance = ChatData._privateConstructor();
   
   
   void listenConversation(String conversationId,VoidCallback listener){
-    conversationsBox.listenable(keys:[conversationId]).addListener(listener);
+    if(!listenedValues.containsKey(conversationId)){
+      listenedValues[conversationId] =  Tuple2(conversationsBox.listenable(keys:[conversationId]),0);
+    }
+    listenedValues[conversationId]!.item1.addListener(listener);
+    listenedValues[conversationId]!.withItem2(listenedValues[conversationId]!.item2+1);
   }
 
-  void removeListnerConversation(String conversationId,VoidCallback listener){
-    conversationsBox.listenable(keys:[conversationId]).removeListener(listener);
+  void removeListenerConversation(String conversationId,VoidCallback listener){
+    if(listenedValues.containsKey(conversationId)){
+      print('actually removing listener');
+      listenedValues[conversationId]!.item1.removeListener(listener);
+      listenedValues[conversationId]!.withItem2(listenedValues[conversationId]!.item2-1);
+      print(listenedValues[conversationId]!.item2);
+      if(listenedValues[conversationId]!.item2<=0){
+        print('removing from map');
+        listenedValues.remove(conversationId);
+      }
+    }
   }
 
   factory ChatData() {
@@ -91,10 +127,9 @@ class ChatData extends ChangeNotifier{
   }
 
 
-  Future<InfoConversation> startConversation(String facebookUserId,String startingMessageContent) async{
-    List existingConversations = _conversations.where((conversation) => conversation.participantsIds.length == 1 && conversation.participantsIds.first == facebookUserId).toList();
-    if(existingConversations.length>=1) {return existingConversations.first;}
-    return await NetworkHelper().startConversation(facebookUserId,startingMessageContent);
+  void sendMessage(String facebookUserId,String messageContent) async{
+    await NetworkHelper.sendMessage(facebookUserId,messageContent);
+    return;
 
   }
 

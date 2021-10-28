@@ -20,12 +20,13 @@ class ChatScreen extends StatefulWidget {
    ChatScreen(this.theUser,{Key? key}) : conversationId='',super(key: key){
      String userId1 = SettingsData().facebookId;
      String userId2 = theUser.facebookId;
-     if (userId1 .compareTo(userId1)>0){
+     if (userId1.compareTo(userId2)>0){
        var temp = userId1; //Swap...
        userId1 = userId2;
        userId2=temp;
      }
      conversationId =  'conversation_${userId1}_with_$userId2';
+     print('Conversation is $conversationId');
   }
   static const String routeName = '/chat_screen';
    String conversationId ;
@@ -54,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void listen(){setState(() {
+    print('updating chat info...');
     updateChatData();
   });}
 
@@ -61,11 +63,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    updateChatData();
+    //updateChatData();
     //ChatData().addListener(listen);
+    print('going to listen to conversation ${widget.conversationId}');
     ChatData().listenConversation(widget.conversationId,listen);
-    ChatData().startConversation(widget.theUser.facebookId,
-        jsonEncode({"type":"text","content":"Kaki message ${DateTime.now().toString()}"}));
     super.initState();
   }
 
@@ -81,7 +82,10 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Chat(
         user: types.User(id: SettingsData().facebookId),
           showUserAvatars:true,
-        onSendPressed: (text){},
+        onSendPressed: (text){
+          ChatData().sendMessage(widget.theUser.facebookId,
+              jsonEncode({"type":"text","content":"${text.text}"}));
+        },
         messages: _messages,
 
 
@@ -91,7 +95,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    ChatData().removeListnerConversation(widget.conversationId,listen);
+    ChatData().removeListenerConversation(widget.conversationId,listen);
+    print('called remove listener ${widget.conversationId}');
+
     super.dispose();
   }
 }
