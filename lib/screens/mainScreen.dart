@@ -1,9 +1,12 @@
+import 'package:dor_chat_client/models/infoMessage.dart';
+import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,7 +18,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-
   void listen(){setState(() {
 
   });}
@@ -26,9 +28,42 @@ class _MainScreenState extends State<MainScreen> {
     return;
   }
 
+
+  Future<void> setupInteractedMessage() async {
+    // Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+  }
+
+  void _handleMessage(RemoteMessage message){
+    final InfoMessage messageReceived = InfoMessage.fromJson(message.data);
+    ChatData().addMessageToDB(messageReceived);
+    if(messageReceived.userId != SettingsData().facebookId) {
+      InfoUser? sender = ChatData().getUserById(messageReceived.userId);
+      if(sender!=null){
+      Navigator.pushNamed(
+          context, ChatScreen.routeName, arguments: ChatScreenArguments(sender));}
+    }
+  }
+
+
+
+
   @override
   void initState() {
     getUsers();
+    setupInteractedMessage();
     super.initState();
   }
 
@@ -38,7 +73,12 @@ class _MainScreenState extends State<MainScreen> {
       appBar: CustomAppBar(
         hasBackButton: false,
           hasTopPadding:true,
-        customTitle:ProfileImageAvatar.network(url:SettingsData().facebookProfileImageUrl),
+        customTitle:Row(
+          children: [
+            ProfileImageAvatar.network(url:SettingsData().facebookProfileImageUrl),
+            Text(SettingsData().facebookId)
+          ],
+        ),
 
       ),
       body: Column(

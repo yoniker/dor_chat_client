@@ -63,7 +63,6 @@ class ChatData extends ChangeNotifier{
       }
       final InfoMessage messageReceived = InfoMessage.fromJson(message);
       addMessageToDB(messageReceived);
-      //await syncWithServer();
       notifyListeners();
   }
 
@@ -113,7 +112,6 @@ class ChatData extends ChangeNotifier{
   factory ChatData() {
     return _instance;
   }
-  List <InfoConversation> _conversations = [];
   Stream<dynamic> _fcmStream = createStream();
   Box<InfoConversation> conversationsBox = Hive.box(CONVERSATIONS_BOXNAME);
   Box<InfoUser> usersBox = Hive.box(USERS_BOXNAME);
