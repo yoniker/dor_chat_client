@@ -2,6 +2,7 @@ import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
   static const String routeName = '/signin_screen';
@@ -22,6 +23,25 @@ class _SignInScreenState extends State<SignInScreen> {
       Navigator.pushReplacementNamed(
           context, MainScreen.routeName);
     }
+  }
+
+
+
+  Future<void> facebookSignIn()async{
+    final LoginResult result = await FacebookAuth.instance.login(); // by default we request the email and the public profile
+// or FacebookAuth.i.login()
+    if (result.status == LoginStatus.success) {
+      // you are logged
+      final AccessToken accessToken = result.accessToken!;
+      final userData = await FacebookAuth.instance.getUserData(fields: "name,email,picture.width(200)",);
+      SettingsData().facebookId = userData['id'];
+      SettingsData().facebookProfileImageUrl = userData['picture']['data']['url'];
+      SettingsData().name = userData['name'];
+    } else {
+      print(result.status);
+      print(result.message);
+    }
+
   }
 
   @override
@@ -48,6 +68,7 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
 
           TextButton(onPressed: (){
+            facebookSignIn();
             String value = textEditingController.value.text;
             print(SettingsData().fcmToken);
             print(value);

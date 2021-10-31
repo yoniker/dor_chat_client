@@ -76,7 +76,7 @@ class _MainScreenState extends State<MainScreen> {
         customTitle:Row(
           children: [
             ProfileImageAvatar.network(url:SettingsData().facebookProfileImageUrl),
-            Text(SettingsData().facebookId)
+            Text(SettingsData().name)
           ],
         ),
 
