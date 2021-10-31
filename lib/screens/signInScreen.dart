@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
+  static const String routeName = '/signin_screen';
 
   @override
   _SignInScreenState createState() => _SignInScreenState();
@@ -15,15 +16,18 @@ class _SignInScreenState extends State<SignInScreen> {
 
   );
 
+
+  void signInListener(){
+    if (SettingsData().registered==true){ //TODO login/registeration status
+      Navigator.pushReplacementNamed(
+          context, MainScreen.routeName);
+    }
+  }
+
   @override
   void initState() {
+    SettingsData().addListener(signInListener );
     moveOnIfRegistered();
-    SettingsData().addListener(() {
-      if (SettingsData().registered==true){ //TODO login/registeration status
-        Navigator.pushNamed(
-            context, MainScreen.routeName);
-      }
-    });
     super.initState();
   }
 
@@ -62,11 +66,15 @@ class _SignInScreenState extends State<SignInScreen> {
   void moveOnIfRegistered() async {
     await SettingsData().readSettingsFromShared();
     if(SettingsData().registered){
-      //Move on to next screen
-      Navigator.pushNamed(
+      Navigator.pushReplacementNamed(
           context, MainScreen.routeName);
-
     }
 
+  }
+
+  @override
+  void dispose() {
+    SettingsData().removeListener(signInListener);
+    super.dispose();
   }
 }

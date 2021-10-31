@@ -29,13 +29,6 @@ class MyHttpOverrides extends HttpOverrides {
 void main() async{
   HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
-  Hive.registerAdapter(InfoMessageAdapter());
-  Hive.registerAdapter(InfoConversationAdapter());
-  await Hive.openBox<InfoConversation>(ChatData.CONVERSATIONS_BOXNAME);
-  await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
-
   runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
 }
 
@@ -81,9 +74,20 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  /// The future is part of the state of our widget. We should not call `initializeApp`
-  /// directly inside [build].
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
+  Future<void> _initializeApp() async{ //TODO support error states
+    await Firebase.initializeApp();
+    await Hive.initFlutter();
+    Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
+    Hive.registerAdapter(InfoMessageAdapter());
+    Hive.registerAdapter(InfoConversationAdapter());
+    await Hive.openBox<InfoConversation>(ChatData.CONVERSATIONS_BOXNAME);
+    await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
+    await SettingsData().readSettingsFromShared();
+    updateFcmToken();
+    Navigator.pushReplacementNamed(context, SignInScreen.routeName);
+  }
+
 
   Future<void> updateFcmToken()async{
 
@@ -107,25 +111,13 @@ class _AppState extends State<App> {
   }
 
   @override
+  void initState() {
+    _initializeApp();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      // Initialize FlutterFire:
-      future: _initialization,
-      builder: (context, snapshot) {
-        // Check for errors
-        if (snapshot.hasError) {
-          return Text('Firebase initialization error');
-        }
-
-        // Once complete, show your application
-        if (snapshot.connectionState == ConnectionState.done) {
-          updateFcmToken();
-          return SignInScreen();
-        }
-
-        // Otherwise, show something whilst waiting for initialization to complete
-        return Text('Loading...');
-      },
-    );
+    return Scaffold(body: Text('Splash screen here'),);
   }
 }

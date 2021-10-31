@@ -25,24 +25,24 @@ class ChatData extends ChangeNotifier{
     final String conversationId = messageReceived.conversationId;
     final InfoConversation? existingConversation = conversationsBox.get(conversationId);
     if(existingConversation==null){
-      print('Conversation doesnt exist. creating conversation..');
+      //print('Conversation doesnt exist. creating conversation..');
       final messages = [messageReceived];
       final List<String> participantsIds = List.from(Set.from([messageReceived.userId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
       conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
     }
     else{//Conversation exists so update messages and participants etc
-      print('Conversation exists. Updating conversation');
+      //print('Conversation exists. Updating conversation');
       var messages = existingConversation.messages;
       final int indexOldMessage = messages.indexWhere((message) => message.messageId == messageReceived.messageId);
       if(indexOldMessage<0){
-        print("Message didn't exist");
+        //print("Message didn't exist");
         messages.insert(0, messageReceived);
         messages.sort((messageA,messageB)=> (messageB.sentTime??0)>(messageA.sentTime??0)?1:-1);
       }
 
       else{
-        print('Message existed so just updating message...');
-        if(messages[indexOldMessage]!=messageReceived)
+        //print('Message existed so just updating message...');
+        if (messages[indexOldMessage]!=messageReceived) //TODO pointless as long as I don't implement operator ==
         {
           messages[indexOldMessage] = messageReceived;}
       }
@@ -64,6 +64,7 @@ class ChatData extends ChangeNotifier{
       final InfoMessage messageReceived = InfoMessage.fromJson(message);
       addMessageToDB(messageReceived);
       notifyListeners();
+      syncWithServer();
   }
 
   Future<void> syncWithServer() async{
@@ -75,6 +76,7 @@ class ChatData extends ChangeNotifier{
       maxTimestampSeen = max(maxTimestampSeen,message.changedDate??message.sentTime??0);
     }
     if(SettingsData().lastSync<maxTimestampSeen){
+      print('setting last sync to be $maxTimestampSeen');
       SettingsData().lastSync = maxTimestampSeen;
     }
   }

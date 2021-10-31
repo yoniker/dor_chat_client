@@ -42,6 +42,7 @@ class SettingsData extends ChangeNotifier{
     _fcmToken = sharedPreferences.getString(FCM_TOKEN_KEY) ?? _fcmToken;
     _registered = sharedPreferences.getBool(REGISTERED_KEY) ?? _registered;
     _readFromShared = true;
+    _lastSync =sharedPreferences.getDouble(LAST_SYNC_KEY) ?? _lastSync;
     return;
   }
 
