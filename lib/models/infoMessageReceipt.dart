@@ -12,12 +12,11 @@ class InfoMessageReceipt{
   double readTime;
 
   InfoMessageReceipt({required this.userId,required this.sentTime,required this.readTime});
-  static List<InfoMessageReceipt> fromJson(messageJson){
-    List<InfoMessageReceipt>InfoMessageReceipts = [];
+  static Map<String,InfoMessageReceipt> fromJson(messageJson){
+    Map<String,InfoMessageReceipt>InfoMessageReceipts = {};
     List<dynamic> jsonedReceipts = messageJson['receipts']??[];
     for(var jsonedReceipt in jsonedReceipts) {
-      InfoMessageReceipts.add(InfoMessageReceipt(userId: jsonedReceipt['user_id'], sentTime: jsonedReceipt['sent_ts']??0, readTime: jsonedReceipt['read_ts']??0));
-
+      InfoMessageReceipts[jsonedReceipt['user_id']]= InfoMessageReceipt(userId:jsonedReceipt['user_id'] , sentTime: jsonedReceipt['sent_ts']??0, readTime: jsonedReceipt['read_ts']??0);
     }
     return InfoMessageReceipts;}
 

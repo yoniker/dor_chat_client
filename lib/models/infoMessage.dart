@@ -29,7 +29,7 @@ class InfoMessage {
   @HiveField(8)
   final double? readTime;
   @HiveField(9)
-  final List<InfoMessageReceipt> receipts;
+  final Map<String,InfoMessageReceipt> receipts;
 
   InfoMessage(
       {required this.content, required this.messageId, required this.conversationId,

@@ -26,7 +26,7 @@ class InfoMessageAdapter extends TypeAdapter<InfoMessage> {
       changedDate: fields[4] as double?,
       readTime: fields[8] as double?,
       sentTime: fields[7] as double?,
-      receipts: (fields[9] as List).cast<InfoMessageReceipt>(),
+      receipts: (fields[9] as Map).cast<String, InfoMessageReceipt>(),
     );
   }
 
