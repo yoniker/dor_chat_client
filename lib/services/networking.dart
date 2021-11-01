@@ -92,7 +92,7 @@ class NetworkHelper {
     print('Dor is the king');
   }
 
-  static Future<List<InfoMessage>> syncChatData()async{
+  static Future<List<InfoMessage>> getMessagesByTimestamp()async{
     print('going to sync with ${SettingsData().lastSync}');
     Uri syncChatDataUri = Uri.https(SERVER_ADDR, '/sync/${SettingsData().facebookId}/${SettingsData().lastSync}');
     http.Response response = await http.get(syncChatDataUri);

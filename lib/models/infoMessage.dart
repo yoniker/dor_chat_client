@@ -1,5 +1,6 @@
 
 import 'package:dor_chat_client/models/chatData.dart';
+import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
@@ -27,19 +28,22 @@ class InfoMessage {
   final double? sentTime;
   @HiveField(8)
   final double? readTime;
+  @HiveField(9)
+  final List<InfoMessageReceipt> receipts;
 
   InfoMessage(
       {required this.content, required this.messageId, required this.conversationId,
-        this.addedDate, required this.userId,this.messageStatus,this.changedDate,this.readTime,this.sentTime});
+        this.addedDate, required this.userId,this.messageStatus,this.changedDate,this.readTime,this.sentTime,required this.receipts});
   InfoMessage.fromJson(Map json) :
   content= json['content'],
         messageId=json['message_id'],
         conversationId=json['conversation_id'],
-        userId=json['facebook_id'],
+        userId=json['messages_user_id']??json['user_id'], //messages_user_id can happen on message not existing in query of relevant messages so the resulting receipt also has the message info
         changedDate=json['changed_date'] is String? double.parse(json['changed_date']):json['changed_date'], //Had to convert every field on FCM message to string in order to send so sometimes it's a string and sometimes a double..
         readTime=json['read_date'] is String ? double.parse(json['read_date']) : json['read_date'],
         messageStatus=json['status'],
-        sentTime=json['sent_date'] is String ? double.parse(json['sent_date']) : json['sent_date'];
+        sentTime=json['sent_date'] is String ? double.parse(json['sent_date']) : json['sent_date'],
+        receipts = InfoMessageReceipt.fromJson(json);
 
   types.TextMessage toUiMessage(){
     InfoUser? author = ChatData().getUserById(userId);

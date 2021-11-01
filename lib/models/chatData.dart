@@ -56,7 +56,7 @@ class ChatData extends ChangeNotifier{
   }
 
   void updateDatabaseOnMessage(message) {
-      final String senderId = message['facebook_id'];
+      final String senderId = message['user_id'];
       if(senderId!=SettingsData().facebookId){ //Update Users Box
         final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
         usersBox.put(sender.facebookId, sender); //Update users box
@@ -68,13 +68,15 @@ class ChatData extends ChangeNotifier{
   }
 
   Future<void> syncWithServer() async{
-    List<InfoMessage> newMessages = await NetworkHelper.syncChatData();
+    List<InfoMessage> newMessages = await NetworkHelper.getMessagesByTimestamp();
     print('got ${newMessages.length} new messages from server while syncing');
     double maxTimestampSeen =0.0;
     for(final message in newMessages){
       addMessageToDB(message);
       maxTimestampSeen = max(maxTimestampSeen,message.changedDate??message.sentTime??0);
     }
+
+
     if(SettingsData().lastSync<maxTimestampSeen){
       print('setting last sync to be $maxTimestampSeen');
       SettingsData().lastSync = maxTimestampSeen;

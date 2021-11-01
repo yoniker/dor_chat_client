@@ -26,13 +26,14 @@ class InfoMessageAdapter extends TypeAdapter<InfoMessage> {
       changedDate: fields[4] as double?,
       readTime: fields[8] as double?,
       sentTime: fields[7] as double?,
+      receipts: (fields[9] as List).cast<InfoMessageReceipt>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, InfoMessage obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.content)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class InfoMessageAdapter extends TypeAdapter<InfoMessage> {
       ..writeByte(7)
       ..write(obj.sentTime)
       ..writeByte(8)
-      ..write(obj.readTime);
+      ..write(obj.readTime)
+      ..writeByte(9)
+      ..write(obj.receipts);
   }
 
   @override
