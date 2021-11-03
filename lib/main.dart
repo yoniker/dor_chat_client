@@ -74,7 +74,17 @@ class App extends StatefulWidget {
   _AppState createState() => _AppState();
 }
 
-class _AppState extends State<App> {
+class _AppState extends State<App>  with WidgetsBindingObserver
+
+{
+  AppLifecycleState? _appState;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appState = state;
+    print('DDDDDDDOOOOOOOOOOORRRRRRRRRRRR App changed state; New state is $state'); //TODO user onine when and if needed
+  }
+
 
   Future<void> _initializeApp() async{ //TODO support error states
     await Firebase.initializeApp();
@@ -115,11 +125,21 @@ class _AppState extends State<App> {
   @override
   void initState() {
     _initializeApp();
+    if(WidgetsBinding.instance!=null){
+      print('REGISTERING!!');
+      WidgetsBinding.instance!.addObserver(this);}
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Text('Splash screen here'),);
+  }
+
+  @override
+  void dispose() {
+    print('DOOORRRR REMOVING APP STATE LISTENER');
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
   }
 }
