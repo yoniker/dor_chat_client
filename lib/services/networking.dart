@@ -98,8 +98,15 @@ class NetworkHelper {
     http.Response response = await http.get(syncChatDataUri);
     List<dynamic> unparsedMessages = json.jsonDecode(response.body);
     List<InfoMessage> messages = unparsedMessages.map((message) => InfoMessage.fromJson(message)).toList();
+    print('dor?');
     return messages;
 
+  }
+
+  static Future<void> markConversationAsRead(String conversationId) async{
+    Uri syncChatDataUri = Uri.https(SERVER_ADDR, '/mark_conversation_read/${SettingsData().facebookId}/$conversationId');
+    http.Response response = await http.get(syncChatDataUri); //TODO something when there's an error
+    return;
   }
 
 

@@ -25,6 +25,7 @@ class ChatData extends ChangeNotifier{
   static const CONVERSATIONS_BOXNAME = 'conversations';
   static const USERS_BOXNAME = 'users';
   Map<String,Tuple2<ValueListenable<Box>,int>> listenedValues = {};
+  Map<String,bool> markingConversation = {};
 
 
   void addMessageToDB(InfoMessage messageReceived){
@@ -44,7 +45,6 @@ class ChatData extends ChangeNotifier{
       if(indexOldMessage<0){
         //print("Message didn't exist");
         messages.insert(0, messageReceived);
-        messages.sort((messageA,messageB)=> (messageB.sentTime??0)>(messageA.sentTime??0)?1:-1);
       }
 
       else{
@@ -66,14 +66,14 @@ class ChatData extends ChangeNotifier{
               }
             }
 
-          InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: currentReceipts,messageStatus: messageReceived.messageStatus,readTime: messageReceived.readTime,sentTime: messageReceived.sentTime);
+          InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: currentReceipts,messageStatus: messageReceived.messageStatus,readTime: messageReceived.readTime,sentTime: messageReceived.sentTime,addedDate: messageReceived.addedDate,changedDate: messageReceived.changedDate);
           messages[indexOldMessage] = updatedMessage;
           }
-          //InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: receipts)
           print('Dor');
 
 
         }
+    messages.sort((messageA,messageB)=> (messageB.addedDate??0)>(messageA.addedDate??0)?1:-1);
       List<String> participantsIds = existingConversation.participantsIds;
       participantsIds = List.from(Set.from([SettingsData().facebookId,messageReceived.userId,...participantsIds]));
       InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
@@ -83,7 +83,12 @@ class ChatData extends ChangeNotifier{
   }
 
   void updateDatabaseOnMessage(message) {
-      final String senderId = message['user_id'];
+    if(message['push_notification_type']=='new_read_receipt'){
+      //TODO for now just sync with server "everything" there is to sync. Of course,this can be improved if and when necessary
+      syncWithServer();
+      return;
+    }
+    final String senderId = message['user_id'];
       if(senderId!=SettingsData().facebookId){ //Update Users Box
         final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
         usersBox.put(sender.facebookId, sender); //Update users box
@@ -210,6 +215,30 @@ class ChatData extends ChangeNotifier{
         onCancel: unsetFirebaseEvents);
 
     return controller.stream;
+  }
+
+  Future<void> markConversationAsRead(String conversationId) async{
+    if(markingConversation.containsKey(conversationId) && markingConversation[conversationId]==true){
+      return;
+    }
+
+
+    String currentUserId = SettingsData().facebookId;
+    InfoConversation? theConversation = conversationsBox.get(conversationId);
+    if(theConversation == null) {return;}
+
+    for(var message in theConversation.messages){
+      var sender = message.userId;
+      if(sender==SettingsData().facebookId){continue;}
+      //We got to the first message not by the user. Since messages are sorted by change date, this is the most recent message
+      if(!message.receipts.containsKey(currentUserId) || message.receipts[currentUserId]!.readTime==0){
+        markingConversation[conversationId] = true;
+        await NetworkHelper.markConversationAsRead(conversationId);
+        Timer(Duration(seconds: 1),(){markingConversation[conversationId]=false;});
+
+      }
+      return;
+    }
 
 
 

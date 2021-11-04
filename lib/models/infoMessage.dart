@@ -2,6 +2,7 @@
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
+import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -43,6 +44,7 @@ class InfoMessage {
         readTime=json['read_date'] is String ? double.parse(json['read_date']) : json['read_date'],
         messageStatus=json['status'],
         sentTime=json['sent_date'] is String ? double.parse(json['sent_date']) : json['sent_date'],
+        addedDate = json['added_date'] is String?double.parse(json['added_date']):json['added_date'],
         receipts = InfoMessageReceipt.fromJson(json);
 
   types.TextMessage toUiMessage(){
@@ -51,7 +53,7 @@ class InfoMessage {
       author = InfoUser(imageUrl: '', name: '', facebookId: userId);
     }
     double createdTime = sentTime??0;
-    types.Status status = messageStatus=='sent'?types.Status.sent:types.Status.sending; //TODO actually deal with message status
+    types.Status status = calculateMessageStatus();
     String? text;
     try{
     Map<String,dynamic> contentsMap = jsonDecode(content);
@@ -59,9 +61,26 @@ class InfoMessage {
     catch (_){
     text='';
     }
-
     //TODO jsonDecode(content)['type'] will determine how to treat the content value (is it an image url etc)
-  return types.TextMessage(author: author.toUiUser(),createdAt: (createdTime*1000).toInt(),id:messageId,status: status,text: text!);
+
+    return types.TextMessage(author: author.toUiUser(),createdAt: (createdTime*1000).toInt(),id:messageId,status: status,text: text!);
+  }
+
+  types.Status calculateMessageStatus() {
+    if(userId == SettingsData().facebookId){ //current user is the one who sent the message
+      //if other users read the message change status to read, otherwise sent
+      for(var receiptUserId in receipts.keys){
+        if(receiptUserId!=SettingsData().facebookId && receipts[receiptUserId]!.readTime>0){
+          return types.Status.seen;
+        }
+
+      }
+      return types.Status.sent; //TODO change here such that there's an intermediate message not sent to server status
+    }
+
+      //Someone else sent the message,so regardless set status to read
+    return types.Status.seen;
+
   }
 
 

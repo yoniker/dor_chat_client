@@ -40,33 +40,37 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-
-  types.User dummyUser = types.User(id:'Dummyid',imageUrl: 'https://picsum.photos/id/237/200/300');
-  types.User dummyUser2 = types.User(id:'Dummyid2',imageUrl: 'https://picsum.photos/id/238/200/300');
   List<types.Message> _messages = <types.Message>[];
-  List<types.User> _mockUsersInChat=[];
 
 
   void updateChatData() {
     List<InfoMessage> currentChatMessages = ChatData().messagesInConversation(
         widget.conversationId);
+    for(var x in currentChatMessages){
+      print(x.addedDate);
+    }
     _messages = currentChatMessages.map((message) => message.toUiMessage()).toList();
+    print('Dor');
 
   }
 
-  void listen(){setState(() {
+  void listen()async{
+    await ChatData().markConversationAsRead(widget.conversationId);
+    setState(() {
     print('updating chat info...');
     updateChatData();
+
   });}
 
 
 
   @override
   void initState() {
-    //updateChatData();
-    //ChatData().addListener(listen);
     print('going to listen to conversation ${widget.conversationId}');
-    ChatData().listenConversation(widget.conversationId,listen);
+    ChatData().markConversationAsRead(widget.conversationId).then((_)
+    => ChatData().listenConversation(widget.conversationId,listen));
+
+
     super.initState();
   }
 
