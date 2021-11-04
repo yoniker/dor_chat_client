@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:dor_chat_client/models/persistentMessagesData.dart';
 import 'package:tuple/tuple.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
 import 'package:dor_chat_client/models/infoMessage.dart';
@@ -13,6 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
 
+
+Future<void> handleBackgroundMessage(RemoteMessage message)async{
+  print('Persisting should sync because got $message');
+  PersistMessages().writeShouldSync(true);
+}
 
 class ChatData extends ChangeNotifier{
 
@@ -166,6 +172,7 @@ class ChatData extends ChangeNotifier{
               }
               controller.add(message.data);
             });
+        FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
       }
     }
     void unsetFirebaseEvents(){

@@ -5,6 +5,7 @@ import 'package:dor_chat_client/models/infoConversation.dart';
 import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
+import 'package:dor_chat_client/models/persistentMessagesData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/screens/signInScreen.dart';
@@ -78,11 +79,23 @@ class _AppState extends State<App>  with WidgetsBindingObserver
 
 {
   AppLifecycleState? _appState;
+  
+  Future<void> syncIfGotBackgroundMessage()async{
+    bool shouldSync = await PersistMessages().readShouldSync();
+    if(shouldSync){
+      print('Should sync so will sync with server');
+      await ChatData().syncWithServer();
+      PersistMessages().writeShouldSync(false);
+    }
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appState = state;
     print('DDDDDDDOOOOOOOOOOORRRRRRRRRRRR App changed state; New state is $state'); //TODO user onine when and if needed
+    if(_appState==AppLifecycleState.resumed){
+      syncIfGotBackgroundMessage();
+    }
   }
 
 
@@ -97,7 +110,7 @@ class _AppState extends State<App>  with WidgetsBindingObserver
     await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
     await SettingsData().readSettingsFromShared();
     updateFcmToken();
-    Navigator.pushReplacementNamed(context, SignInScreen.routeName);
+    Navigator.pushNamed(context, SignInScreen.routeName);
   }
 
 

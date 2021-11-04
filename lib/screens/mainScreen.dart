@@ -51,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
     ChatData().addMessageToDB(messageReceived);
     if(messageReceived.userId != SettingsData().facebookId) {
       InfoUser? sender = ChatData().getUserById(messageReceived.userId);
-      if(sender!=null){
+      if(sender!=null && mounted){
       Navigator.pushNamed(
           context, ChatScreen.routeName, arguments: ChatScreenArguments(sender));}
     }
