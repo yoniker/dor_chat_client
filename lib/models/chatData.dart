@@ -35,8 +35,9 @@ class ChatData extends ChangeNotifier{
       final messages = [messageReceived];
       final List<String> participantsIds = List.from(Set.from([messageReceived.userId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
       conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
+    return;
     }
-    else{//Conversation exists so update messages and participants etc
+    //Conversation exists so update messages and participants etc
       //print('Conversation exists. Updating conversation');
       var messages = existingConversation.messages;
       final int indexOldMessage = messages.indexWhere((message) => message.messageId == messageReceived.messageId);
@@ -50,15 +51,35 @@ class ChatData extends ChangeNotifier{
         //print('Message existed so just updating message...');
         if (messages[indexOldMessage]!=messageReceived) //TODO pointless as long as I don't implement operator ==
         {
-          messages[indexOldMessage] = messageReceived;}
-      }
+
+          InfoMessage currentDbMessage = messages[indexOldMessage];
+          //TODO combine currentDbMessage and messageReceived
+          var currentReceipts = currentDbMessage.receipts;
+          var receivedReceipts = messageReceived.receipts;
+          for(var key in receivedReceipts.keys){
+              if(currentReceipts.keys.contains(key)){
+              currentReceipts[key]!.sentTime = max(receivedReceipts[key]!.sentTime,currentReceipts[key]!.sentTime);
+              currentReceipts[key]!.readTime = max(receivedReceipts[key]!.readTime,currentReceipts[key]!.readTime);}
+
+              else{
+                currentReceipts[key] = receivedReceipts[key]!;
+              }
+            }
+
+          InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: currentReceipts,messageStatus: messageReceived.messageStatus,readTime: messageReceived.readTime,sentTime: messageReceived.sentTime);
+          messages[indexOldMessage] = updatedMessage;
+          }
+          //InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: receipts)
+          print('Dor');
+
+
+        }
       List<String> participantsIds = existingConversation.participantsIds;
       participantsIds = List.from(Set.from([SettingsData().facebookId,messageReceived.userId,...participantsIds]));
       InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
           lastChangedTime: existingConversation.lastChangedTime, creationTime: existingConversation.creationTime, participantsIds: participantsIds, messages: messages); //TODO notice that changed time is complete bullshit for now
       conversationsBox.put(conversationId,updatedConversation);
 
-    }
   }
 
   void updateDatabaseOnMessage(message) {
