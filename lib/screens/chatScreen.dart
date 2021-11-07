@@ -18,15 +18,8 @@ class ChatScreenArguments {
 
 class ChatScreen extends StatefulWidget {
    ChatScreen(this.theUser,{Key? key}) : conversationId='',super(key: key){
-     String userId1 = SettingsData().facebookId;
-     String userId2 = theUser.facebookId;
-     if (userId1.compareTo(userId2)>0){
-       var temp = userId1; //Swap...
-       userId1 = userId2;
-       userId2=temp;
-     }
-     conversationId =  'conversation_${userId1}_with_$userId2';
-     print('Conversation is $conversationId');
+
+     conversationId =  ChatData().calculateConversationId(theUser.facebookId);
   }
   static const String routeName = '/chat_screen';
    String conversationId ;

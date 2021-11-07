@@ -79,10 +79,11 @@ class NetworkHelper {
     }
   }
 
-  static Future<void> sendMessage(String facebookUserId,String startingConversationContent) async{
-    Map<String, String> toSend = {
+  static Future<void> sendMessage(String facebookUserId,String startingConversationContent,double senderEpochTime) async{
+    Map<String, dynamic> toSend = {
       'other_user_id':facebookUserId,
-      'first_message':startingConversationContent
+      'message_content':startingConversationContent,
+      'sender_epoch_time':senderEpochTime
     };
     String encoded = jsonEncode(toSend);
     Uri postConversationUri =

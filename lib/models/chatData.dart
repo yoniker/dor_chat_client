@@ -122,6 +122,23 @@ class ChatData extends ChangeNotifier{
     syncWithServer(); //Sync with the server (once,it's a singleton..) as soon as the app starts
   }
   static final ChatData _instance = ChatData._privateConstructor();
+
+
+  String calculateConversationId(String otherUserId){
+    String userId1 = SettingsData().facebookId;
+    String userId2 = otherUserId;
+    if (userId1.compareTo(userId2)>0){
+      var temp = userId1; //Swap...
+      userId1 = userId2;
+      userId2=temp;
+    }
+
+    return 'conversation_${userId1}_with_$userId2';
+  }
+
+  String calculateMessageId(String conversationId,double epochTime){
+    return SettingsData().facebookId + '_' + conversationId + '_' + epochTime.toString();
+  }
   
   
   void listenConversation(String conversationId,VoidCallback listener){
@@ -161,8 +178,13 @@ class ChatData extends ChangeNotifier{
   }
 
 
-  void sendMessage(String facebookUserId,String messageContent) async{
-    await NetworkHelper.sendMessage(facebookUserId,messageContent);
+  void sendMessage(String otherUserId,String messageContent) async{
+    double epochTime = DateTime.now().millisecondsSinceEpoch/100;
+    String conversationId = calculateConversationId(otherUserId);
+    String messageId = calculateMessageId(conversationId, epochTime);
+    InfoMessage newMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: 'Uploading',receipts: {},changedDate: epochTime,addedDate: epochTime);
+    addMessageToDB(newMessage);
+    await NetworkHelper.sendMessage(otherUserId,messageContent,epochTime);
     return;
 
   }
