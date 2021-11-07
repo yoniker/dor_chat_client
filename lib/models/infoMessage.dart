@@ -52,7 +52,7 @@ class InfoMessage {
     if(author==null){
       author = InfoUser(imageUrl: '', name: '', facebookId: userId);
     }
-    double createdTime = sentTime??0;
+    double createdTime = addedDate??changedDate??sentTime??0;
     types.Status status = calculateMessageStatus();
     String? text;
     try{
@@ -67,7 +67,11 @@ class InfoMessage {
   }
 
   types.Status calculateMessageStatus() {
-    if(userId == SettingsData().facebookId){ //current user is the one who sent the message
+    if(userId == SettingsData().facebookId){
+      //current user is the one who sent the message
+      if(messageStatus=='Uploading'){
+        return types.Status.sending;
+      }
       //if other users read the message change status to read, otherwise sent
       for(var receiptUserId in receipts.keys){
         if(receiptUserId!=SettingsData().facebookId && receipts[receiptUserId]!.readTime>0){
