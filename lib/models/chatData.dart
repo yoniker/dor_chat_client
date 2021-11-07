@@ -179,7 +179,7 @@ class ChatData extends ChangeNotifier{
 
 
   void sendMessage(String otherUserId,String messageContent) async{
-    double epochTime = DateTime.now().millisecondsSinceEpoch/100;
+    double epochTime = DateTime.now().millisecondsSinceEpoch/1000;
     String conversationId = calculateConversationId(otherUserId);
     String messageId = calculateMessageId(conversationId, epochTime);
     InfoMessage newMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: 'Uploading',receipts: {},changedDate: epochTime,addedDate: epochTime);
