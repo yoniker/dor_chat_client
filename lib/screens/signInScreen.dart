@@ -1,6 +1,7 @@
 import 'package:auth_buttons/auth_buttons.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
+import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
@@ -12,7 +13,7 @@ class SignInScreen extends StatefulWidget {
   _SignInScreenState createState() => _SignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
 
   TextEditingController textEditingController = TextEditingController(
 
@@ -45,14 +46,14 @@ class _SignInScreenState extends State<SignInScreen> {
         break;
 
       case LoginStatus.cancelled:
-        setState(() {
+        setStateIfMounted(() {
           _errorTryingToLogin = true;
           _errorMessage = 'User cancelled Login';
         });
         break;
       case LoginStatus.operationInProgress:
       case LoginStatus.failed:
-        setState(() {
+      setStateIfMounted(() {
           _errorTryingToLogin = true;
           _errorMessage = loginResult.message ?? 'Error trying to login';
         });

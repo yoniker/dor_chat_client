@@ -2,6 +2,7 @@ import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
+import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
   List<types.Message> _messages = <types.Message>[];
 
 
@@ -47,13 +48,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   }
 
-  void listen()async{
+  void listenChat()async{
     await ChatData().markConversationAsRead(widget.conversationId);
-    setState(() {
+    setStateIfMounted((){
     print('updating chat info...');
     updateChatData();
-
-  });}
+  });
+  }
 
 
 
@@ -61,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     print('going to listen to conversation ${widget.conversationId}');
     ChatData().markConversationAsRead(widget.conversationId).then((_)
-    => ChatData().listenConversation(widget.conversationId,listen));
+    => ChatData().listenConversation(widget.conversationId,listenChat));
 
 
     super.initState();
@@ -92,7 +93,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    ChatData().removeListenerConversation(widget.conversationId,listen);
+    ChatData().removeListenerConversation(widget.conversationId,listenChat);
     print('called remove listener ${widget.conversationId}');
 
     super.dispose();

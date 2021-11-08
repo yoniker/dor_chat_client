@@ -3,6 +3,7 @@ import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
+import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:dor_chat_client/widgets/conversations_preview_widget.dart';
 import 'package:dor_chat_client/widgets/contacts_widget.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
@@ -18,10 +19,8 @@ class MainScreen extends StatefulWidget {
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  void listen(){setState(() {
-
-  });}
+class _MainScreenState extends State<MainScreen> with MountedStateMixin {
+  void listen(){setStateIfMounted(() {});}
 
   void getUsers(){
     ChatData().addListener(listen);
