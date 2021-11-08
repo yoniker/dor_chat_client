@@ -3,12 +3,10 @@ import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
-import 'package:dor_chat_client/widgets/con_preview_widget.dart';
+import 'package:dor_chat_client/widgets/conversations_preview_widget.dart';
 import 'package:dor_chat_client/widgets/contacts_widget.dart';
-import 'package:dor_chat_client/widgets/conversationsWidget.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
-import 'package:dor_chat_client/widgets/profileDisplay.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
@@ -98,7 +96,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: [
                   ContactsWidget(),
-                  ConPreviewWidget(),
+                  ConversationsPreviewWidget(),
                 ],
               ),
             ),

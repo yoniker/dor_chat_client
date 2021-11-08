@@ -5,14 +5,14 @@ import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:flutter/material.dart';
 
-class ConPreviewWidget extends StatefulWidget {
-  const ConPreviewWidget({Key? key}) : super(key: key);
+class ConversationsPreviewWidget extends StatefulWidget {
+  const ConversationsPreviewWidget({Key? key}) : super(key: key);
 
   @override
-  _ConPreviewWidgetState createState() => _ConPreviewWidgetState();
+  _ConversationsPreviewWidgetState createState() => _ConversationsPreviewWidgetState();
 }
 
-class _ConPreviewWidgetState extends State<ConPreviewWidget> {
+class _ConversationsPreviewWidgetState extends State<ConversationsPreviewWidget> {
   List<InfoConversation> conversations = ChatData().conversations;
 
   void listenConversations(){setState(() {
@@ -45,10 +45,6 @@ class _ConPreviewWidgetState extends State<ConPreviewWidget> {
           InfoConversation conversation = conversations[index];
           InfoMessage lastMessage = conversation.messages[0];
     InfoUser? collocutor = ChatData().getUserById(ChatData().getCollocutorId(conversation));
-    if(collocutor==null){
-      print('Dor!');
-      print('king!');
-    }
     bool messageWasRead = ChatData().conversationRead(conversation);
           return GestureDetector(
             onTap: (){
