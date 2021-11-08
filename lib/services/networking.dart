@@ -41,22 +41,6 @@ class NetworkHelper {
   }
 
 
-  static Future<List<InfoConversation>> getAllConversations() async {
-    Uri chatDataLinkUri = Uri.https(SERVER_ADDR, 'chatData/${SettingsData().facebookId}');
-    http.Response resp = await http.get(chatDataLinkUri);
-    if (resp.statusCode == 200) {
-      //TODO think how to handle network errors
-      List<dynamic> parsed = json.jsonDecode(resp.body);
-      print('Dor');
-      //List<InfoUser> users = parsed.map((e) => InfoUser.fromJson(e)).toList();
-      //return users;
-      return [];
-    }
-
-    return [];
-  }
-
-
 
 
 
@@ -86,11 +70,9 @@ class NetworkHelper {
       'sender_epoch_time':senderEpochTime
     };
     String encoded = jsonEncode(toSend);
-    Uri postConversationUri =
+    Uri postMessageUri =
     Uri.https(SERVER_ADDR, '/send_message/${SettingsData().facebookId}');
-    print('starting conversation...');
-    http.Response response = await http.post(postConversationUri, body: encoded);
-    print('Dor is the king');
+    http.Response response = await http.post(postMessageUri, body: encoded);
   }
 
   static Future<List<InfoMessage>> getMessagesByTimestamp()async{
@@ -99,7 +81,6 @@ class NetworkHelper {
     http.Response response = await http.get(syncChatDataUri);
     List<dynamic> unparsedMessages = json.jsonDecode(response.body);
     List<InfoMessage> messages = unparsedMessages.map((message) => InfoMessage.fromJson(message)).toList();
-    print('dor?');
     return messages;
 
   }

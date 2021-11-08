@@ -3,6 +3,9 @@ import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
+import 'package:dor_chat_client/widgets/con_preview_widget.dart';
+import 'package:dor_chat_client/widgets/contacts_widget.dart';
+import 'package:dor_chat_client/widgets/conversationsWidget.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
@@ -70,6 +73,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).primaryColor,
       appBar: CustomAppBar(
         hasBackButton: false,
           hasTopPadding:true,
@@ -83,16 +87,21 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          Container(height: 20,),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children:
-              ChatData().users.map((e) => ProfileDisplay(e,onTap: (){
-                //Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(e)));
-                Navigator.pushNamed(context,ChatScreen.routeName,arguments: ChatScreenArguments(e));
-              },radius: 50,)).toList()
-            ,),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(color:Theme.of(context).colorScheme.secondary,borderRadius:BorderRadius.only(
+                topLeft: Radius.circular(30.0),
+                topRight: Radius.circular(30.0),
+
+              ) ),
+
+              child: Column(
+                children: [
+                  ContactsWidget(),
+                  ConPreviewWidget(),
+                ],
+              ),
+            ),
           ),
         ],
       ),

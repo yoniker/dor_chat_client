@@ -31,7 +31,9 @@ class MyHttpOverrides extends HttpOverrides {
 void main() async{
   HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MaterialApp(home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
+  runApp(MaterialApp(
+    theme: ThemeData(primaryColor: Colors.white, colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Color(0xFFFEF9EB))),
+    home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
 }
 
 

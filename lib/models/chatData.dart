@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/persistentMessagesData.dart';
 import 'package:tuple/tuple.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
@@ -16,7 +17,6 @@ import 'dart:convert';
 
 
 Future<void> handleBackgroundMessage(RemoteMessage message)async{
-  print('Persisting should sync because got $message');
   PersistMessages().writeShouldSync(true);
 }
 
@@ -28,15 +28,21 @@ class ChatData extends ChangeNotifier{
   Map<String,bool> markingConversation = {};
 
 
-  void addMessageToDB(InfoMessage messageReceived){
+  bool addMessageToDB(InfoMessage messageReceived,{String? otherParticipantsId}){
+    bool needUpdateUsers = false;
     final String conversationId = messageReceived.conversationId;
     final InfoConversation? existingConversation = conversationsBox.get(conversationId);
     if(existingConversation==null){
       //print('Conversation doesnt exist. creating conversation..');
       final messages = [messageReceived];
-      final List<String> participantsIds = List.from(Set.from([messageReceived.userId,SettingsData().facebookId])); //TODO to support groups make sure the list of participants is also sent with server and appropriately update it here...
+      final List<String> participantsIds = List.from(Set.from([messageReceived.userId,SettingsData().facebookId,otherParticipantsId??SettingsData().facebookId]));
+      for(var participantId in participantsIds){
+        if(!usersBox.keys.contains(participantId)){
+          needUpdateUsers = true;
+        }
+      }
       conversationsBox.put(conversationId,InfoConversation(conversationId: conversationId, lastChangedTime: 0, creationTime: 0, participantsIds: participantsIds, messages: messages));
-    return;
+    return needUpdateUsers;
     }
     //Conversation exists so update messages and participants etc
       //print('Conversation exists. Updating conversation');
@@ -50,35 +56,55 @@ class ChatData extends ChangeNotifier{
       else{
         //print('Message existed so just updating message...');
         if (messages[indexOldMessage]!=messageReceived) //TODO pointless as long as I don't implement operator ==
-        {
-
+            {
           InfoMessage currentDbMessage = messages[indexOldMessage];
           //TODO combine currentDbMessage and messageReceived
           var currentReceipts = currentDbMessage.receipts;
           var receivedReceipts = messageReceived.receipts;
-          for(var key in receivedReceipts.keys){
-              if(currentReceipts.keys.contains(key)){
-              currentReceipts[key]!.sentTime = max(receivedReceipts[key]!.sentTime,currentReceipts[key]!.sentTime);
-              currentReceipts[key]!.readTime = max(receivedReceipts[key]!.readTime,currentReceipts[key]!.readTime);}
-
-              else{
-                currentReceipts[key] = receivedReceipts[key]!;
-              }
+          for (var key in receivedReceipts.keys) {
+            if (currentReceipts.keys.contains(key)) {
+              currentReceipts[key]!.sentTime = max(
+                  receivedReceipts[key]!.sentTime,
+                  currentReceipts[key]!.sentTime);
+              currentReceipts[key]!.readTime = max(
+                  receivedReceipts[key]!.readTime,
+                  currentReceipts[key]!.readTime);
             }
 
-          InfoMessage updatedMessage = InfoMessage(content: messageReceived.content, messageId: messageReceived.messageId, conversationId: messageReceived.conversationId, userId: messageReceived.userId, receipts: currentReceipts,messageStatus: messageReceived.messageStatus,readTime: messageReceived.readTime,sentTime: messageReceived.sentTime,addedDate: messageReceived.addedDate,changedDate: messageReceived.changedDate);
-          messages[indexOldMessage] = updatedMessage;
+            else {
+              currentReceipts[key] = receivedReceipts[key]!;
+            }
           }
-          print('Dor');
+
+          InfoMessage updatedMessage = InfoMessage(
+              content: messageReceived.content,
+              messageId: messageReceived.messageId,
+              conversationId: messageReceived.conversationId,
+              userId: messageReceived.userId,
+              receipts: currentReceipts,
+              messageStatus: messageReceived.messageStatus,
+              readTime: messageReceived.readTime,
+              sentTime: messageReceived.sentTime,
+              addedDate: messageReceived.addedDate,
+              changedDate: messageReceived.changedDate);
+          messages[indexOldMessage] = updatedMessage;
+        }
 
 
         }
-    messages.sort((messageA,messageB)=> (messageB.addedDate??0)>(messageA.addedDate??0)?1:-1);
+    messages.sort((messageA,messageB)=> (messageB.changedDate??messageB.addedDate??0)>(messageA.changedDate??messageA.addedDate??0)?1:-1);
       List<String> participantsIds = existingConversation.participantsIds;
-      participantsIds = List.from(Set.from([SettingsData().facebookId,messageReceived.userId,...participantsIds]));
+
+      participantsIds = List.from(Set.from([SettingsData().facebookId,messageReceived.userId,otherParticipantsId??SettingsData().facebookId,...participantsIds]));
+    for(var participantId in participantsIds){
+      if(!usersBox.keys.contains(participantId)){
+        needUpdateUsers = true;
+      }}
       InfoConversation updatedConversation = InfoConversation(conversationId: existingConversation.conversationId,
           lastChangedTime: existingConversation.lastChangedTime, creationTime: existingConversation.creationTime, participantsIds: participantsIds, messages: messages); //TODO notice that changed time is complete bullshit for now
       conversationsBox.put(conversationId,updatedConversation);
+
+      return needUpdateUsers;
 
   }
 
@@ -103,16 +129,21 @@ class ChatData extends ChangeNotifier{
     List<InfoMessage> newMessages = await NetworkHelper.getMessagesByTimestamp();
     print('got ${newMessages.length} new messages from server while syncing');
     double maxTimestampSeen =0.0;
+    bool needUpdateUsers = false;
     for(final message in newMessages){
-      addMessageToDB(message);
+      needUpdateUsers |= addMessageToDB(message);
       maxTimestampSeen = max(maxTimestampSeen,message.changedDate??message.sentTime??0);
     }
-
+    if(needUpdateUsers){
+      await getUsersFromServer();
+    }
 
     if(SettingsData().lastSync<maxTimestampSeen){
-      print('setting last sync to be $maxTimestampSeen');
+      //print('setting last sync to be $maxTimestampSeen');
       SettingsData().lastSync = maxTimestampSeen;
     }
+
+    notifyListeners();
   }
 
 
@@ -183,10 +214,47 @@ class ChatData extends ChangeNotifier{
     String conversationId = calculateConversationId(otherUserId);
     String messageId = calculateMessageId(conversationId, epochTime);
     InfoMessage newMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: 'Uploading',receipts: {},changedDate: epochTime,addedDate: epochTime);
-    addMessageToDB(newMessage);
+    addMessageToDB(newMessage,otherParticipantsId: otherUserId);
     await NetworkHelper.sendMessage(otherUserId,messageContent,epochTime);
     return;
 
+  }
+
+  double timeConversationLastChanged(InfoConversation conversation){
+    if(conversation.messages.length==0){return 0;}
+    InfoMessage lastMessage = conversation.messages[0];
+    if((lastMessage.changedDate??0)>0){return lastMessage.changedDate!;}
+    if((lastMessage.addedDate??0)>0){return lastMessage.addedDate!;}
+    if((lastMessage.sentTime??0)>0){return lastMessage.sentTime!;}
+    return 0;
+  }
+
+
+  List<InfoConversation> get conversations{
+    //Get the conversations sorted before displaying those to the user
+    List<InfoConversation> allConversations =conversationsBox.values.toList();
+    //((messageA,messageB)=> (messageB.changedDate??messageB.addedDate??0)>(messageA.changedDate??messageA.addedDate??0)?1:-1);
+    allConversations.sort((conversation1,conversation2)=>timeConversationLastChanged(conversation2)>timeConversationLastChanged(conversation1)?1:-1);
+    return allConversations;
+  }
+
+  bool conversationRead(InfoConversation conversation){
+    if(conversation.messages.length==0){return true;}
+    InfoMessage lastMessage = conversation.messages[0];
+    if(lastMessage.userId==SettingsData().facebookId){return true;}
+    //Check read receipt..
+    print('Checking read receipt for user ${SettingsData().name}');
+    if(!lastMessage.receipts.containsKey(SettingsData().facebookId)){return false;}
+    InfoMessageReceipt currentUserReceipt = lastMessage.receipts[SettingsData().facebookId]!;
+    if(currentUserReceipt.readTime==0){return false;}
+    return true;
+  }
+
+  String getCollocutorId(InfoConversation conversation){
+    for(var participantId in conversation.participantsIds){
+      if(participantId!=SettingsData().facebookId){return participantId;}
+    }
+    return SettingsData().facebookId;
   }
 
 
@@ -239,7 +307,7 @@ class ChatData extends ChangeNotifier{
     return controller.stream;
   }
 
-  Future<void> markConversationAsRead(String conversationId) async{
+  Future<void> markConversationAsRead(String conversationId) async{ //TODO rethink this shit!
     if(markingConversation.containsKey(conversationId) && markingConversation[conversationId]==true){
       return;
     }

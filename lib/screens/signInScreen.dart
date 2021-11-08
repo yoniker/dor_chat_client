@@ -83,8 +83,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 FacebookAuthButton(onPressed: (){
                 facebookSignIn();
                 String value = textEditingController.value.text;
-                print(SettingsData().fcmToken);
-                print(value);
+                //print(SettingsData().fcmToken);
+                //print(value);
                 if(value.length>0){
                   SettingsData().facebookId = value;
                   SettingsData().facebookProfileImageUrl = 'https://picsum.photos/id/$value/200/300';
