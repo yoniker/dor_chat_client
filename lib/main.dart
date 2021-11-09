@@ -112,7 +112,7 @@ class _AppState extends State<App>  with WidgetsBindingObserver
     await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
     await SettingsData().readSettingsFromShared();
     updateFcmToken();
-    Navigator.pushNamed(context, SignInScreen.routeName);
+    Navigator.pushReplacementNamed(context, SignInScreen.routeName);
   }
 
 
@@ -154,7 +154,7 @@ class _AppState extends State<App>  with WidgetsBindingObserver
   @override
   void dispose() {
     print('DOOORRRR REMOVING APP STATE LISTENER');
-    WidgetsBinding.instance?.removeObserver(this);
+    //WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
   }
 }

@@ -3,7 +3,6 @@ import 'package:dor_chat_client/models/settings_model.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);

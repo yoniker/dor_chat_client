@@ -20,7 +20,7 @@ Future<void> handleBackgroundMessage(RemoteMessage message)async{
   PersistMessages().writeShouldSync(true);
 }
 
-class ChatData extends ChangeNotifier{
+class ChatData extends ChangeNotifier {
 
   static const CONVERSATIONS_BOXNAME = 'conversations';
   static const USERS_BOXNAME = 'users';
@@ -112,6 +112,10 @@ class ChatData extends ChangeNotifier{
     if(message['push_notification_type']=='new_read_receipt'){
       //TODO for now just sync with server "everything" there is to sync. Of course,this can be improved if and when necessary
       syncWithServer();
+      return;
+    }
+    if(message['push_notification_type']=='new_user'){
+      getUsersFromServer();
       return;
     }
     final String senderId = message['user_id'];
@@ -209,8 +213,9 @@ class ChatData extends ChangeNotifier{
   }
 
 
-  void sendMessage(String otherUserId,String messageContent) async{
-    double epochTime = DateTime.now().millisecondsSinceEpoch/1000;
+  void sendMessage(String otherUserId,String messageContent,{double? epochTime}) async{
+    if(epochTime==null){
+     epochTime = DateTime.now().millisecondsSinceEpoch/1000;}
     String conversationId = calculateConversationId(otherUserId);
     String messageId = calculateMessageId(conversationId, epochTime);
     InfoMessage newMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: 'Uploading',receipts: {},changedDate: epochTime,addedDate: epochTime);
@@ -227,6 +232,20 @@ class ChatData extends ChangeNotifier{
     //TODO alternative is to implement copyWith...
     addMessageToDB(updatedMessage,otherParticipantsId: otherUserId);
     return;
+
+  }
+
+  Future<void> resendMessageIfError(String conversationId,String messageId)async{
+    if(!conversationsBox.keys.contains(conversationId)){return;}
+    InfoConversation conversation = conversationsBox.get(conversationId)!;
+    int indexMessage = conversation.messages.indexWhere((message) => message.messageId == messageId);
+    if(indexMessage<0){return;}
+    InfoMessage message = conversation.messages[indexMessage];
+    if(message.messageStatus!='Error'){
+      return;
+    }
+    print('Trying to resend message!');
+    sendMessage(getCollocutorId(conversation), message.content, epochTime:message.addedDate);
 
   }
 
@@ -282,6 +301,8 @@ class ChatData extends ChangeNotifier{
     if(foundConversation==null){return [];}
     return foundConversation.messages;
   }
+
+
 
 
   static Stream<dynamic> createStream(){
