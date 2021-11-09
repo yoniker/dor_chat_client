@@ -16,6 +16,9 @@ import 'package:http/http.dart' as http;
 
 enum NetworkTaskStatus { completed, inProgress, notExist } //possible statuses for long ongoing tasks on the server
 
+enum TaskResult {success,failed}
+
+
 class NetworkHelper {
   static const SERVER_ADDR = 'dordating.com:8085';
   static final NetworkHelper _instance = NetworkHelper._internal();
@@ -63,7 +66,7 @@ class NetworkHelper {
     }
   }
 
-  static Future<void> sendMessage(String facebookUserId,String startingConversationContent,double senderEpochTime) async{
+  static Future<TaskResult> sendMessage(String facebookUserId,String startingConversationContent,double senderEpochTime) async{
     Map<String, dynamic> toSend = {
       'other_user_id':facebookUserId,
       'message_content':startingConversationContent,
@@ -73,6 +76,10 @@ class NetworkHelper {
     Uri postMessageUri =
     Uri.https(SERVER_ADDR, '/send_message/${SettingsData().facebookId}');
     http.Response response = await http.post(postMessageUri, body: encoded);
+    if(response.statusCode==200){
+      return TaskResult.success;
+    }
+    return TaskResult.failed;
   }
 
   static Future<List<InfoMessage>> getMessagesByTimestamp()async{

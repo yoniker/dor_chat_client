@@ -215,7 +215,17 @@ class ChatData extends ChangeNotifier{
     String messageId = calculateMessageId(conversationId, epochTime);
     InfoMessage newMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: 'Uploading',receipts: {},changedDate: epochTime,addedDate: epochTime);
     addMessageToDB(newMessage,otherParticipantsId: otherUserId);
-    await NetworkHelper.sendMessage(otherUserId,messageContent,epochTime);
+    String? newMessageStatus;
+    try{
+    TaskResult result = await NetworkHelper.sendMessage(otherUserId,messageContent,epochTime);
+    newMessageStatus = result==TaskResult.success?'Sent':'Error';
+    }
+    catch(_){
+      newMessageStatus = 'Error';
+    }
+    InfoMessage updatedMessage = InfoMessage(content: messageContent,messageId: messageId,conversationId: conversationId,userId: SettingsData().facebookId,messageStatus: newMessageStatus,receipts: {},changedDate: epochTime,addedDate: epochTime);
+    //TODO alternative is to implement copyWith...
+    addMessageToDB(updatedMessage,otherParticipantsId: otherUserId);
     return;
 
   }

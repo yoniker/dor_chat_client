@@ -72,6 +72,13 @@ class InfoMessage {
       if(messageStatus=='Uploading'){
         return types.Status.sending;
       }
+
+      if(messageStatus == 'Sent'){
+        return types.Status.sent;
+      }
+      if(messageStatus == 'Error'){
+        return types.Status.error;
+      }
       //if other users read the message change status to read, otherwise sent
       for(var receiptUserId in receipts.keys){
         if(receiptUserId!=SettingsData().facebookId && receipts[receiptUserId]!.readTime>0){
