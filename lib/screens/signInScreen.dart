@@ -77,6 +77,8 @@ class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text('דור הוא האחד'),
+            SizedBox(height: 4.0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
