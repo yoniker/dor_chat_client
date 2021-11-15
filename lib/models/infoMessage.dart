@@ -37,7 +37,7 @@ class InfoMessage {
         this.addedDate, required this.userId,this.messageStatus,this.changedDate,this.readTime,this.sentTime,required this.receipts});
   InfoMessage.fromJson(Map json) :
   content= json['content'],
-        messageId=json['message_id'],
+        messageId=json['message_id_'],
         conversationId=json['conversation_id'],
         userId=json['messages_user_id']??json['user_id'], //messages_user_id can happen on message not existing in query of relevant messages so the resulting receipt also has the message info
         changedDate=json['changed_date'] is String? double.parse(json['changed_date']):json['changed_date'], //Had to convert every field on FCM message to string in order to send so sometimes it's a string and sometimes a double..
