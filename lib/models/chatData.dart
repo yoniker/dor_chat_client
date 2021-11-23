@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/persistentMessagesData.dart';
+import 'package:dor_chat_client/services/service_websocket.dart';
 import 'package:tuple/tuple.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
 import 'package:dor_chat_client/models/infoMessage.dart';
@@ -154,6 +155,11 @@ class ChatData extends ChangeNotifier {
   //Make it a singleton
   ChatData._privateConstructor() {
     _fcmStream.listen(updateDatabaseOnMessage);
+    ServiceWebsocket.instance.stream.listen((message) {
+      print('Got $message from websocket');
+      updateDatabaseOnMessage(message);
+
+    });
     syncWithServer(); //Sync with the server (once,it's a singleton..) as soon as the app starts
   }
   static final ChatData _instance = ChatData._privateConstructor();
