@@ -55,7 +55,7 @@ class ServiceWebsocket {
     try {
       _creatingConnection = true;
       await _waitUntilConnected();
-      _channel =  await WebSocket.connect('wss://dordating.com:5000');
+      _channel =  await WebSocket.connect('wss://dordating.com:8085');
       if(_channel == null){
         print('connect returned null. Trying to reconnect...');
         await Future.delayed(Duration(seconds: 2));
