@@ -48,7 +48,7 @@ class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
 
 
   Future<void> facebookSignIn()async{
-    await askPermission(); //TODO move this elsewhere..
+    if(Theme.of(context).platform == TargetPlatform.iOS) await askPermission(); //TODO move this elsewhere..
     final LoginResult loginResult = await FacebookAuth.instance.login(); // by default we request the email and the public profile
     switch (loginResult.status) {
       case LoginStatus.success:
@@ -95,7 +95,7 @@ class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('דור הוא האחד'),
+            Text('דור הוא המלך'),
             SizedBox(height: 4.0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
