@@ -2,6 +2,7 @@ import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ContactsWidget extends StatefulWidget {
   const ContactsWidget({Key? key}) : super(key: key);
@@ -51,8 +52,8 @@ class _ContactsWidgetState extends State<ContactsWidget> {
                 return GestureDetector(
                   onTap: (){
 
-                    {Navigator.pushNamed(
-                        context, ChatScreen.routeName, arguments: ChatScreenArguments(currentUser));}
+                    {navigator!.pushNamed(
+                         ChatScreen.routeName, arguments: currentUser);}
 
                   },
                   child: Padding(

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 
 // Import the firebase_core plugin
 import 'package:firebase_core/firebase_core.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/settings_model.dart';
 
@@ -31,39 +32,17 @@ class MyHttpOverrides extends HttpOverrides {
 void main() async{
   HttpOverrides.global = new MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MaterialApp(
+  runApp(GetMaterialApp(
+    getPages: [
+      GetPage(name: MainScreen.routeName, page: () => MainScreen()),
+      GetPage(name: ChatScreen.routeName, page: () => ChatScreen()),
+      GetPage(
+          name: SignInScreen.routeName,
+          page: () => SignInScreen()
+      ),
+    ],
     theme: ThemeData(primaryColor: Colors.white, colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Color(0xFFFEF9EB))),
-    home: App(),onGenerateRoute: _onGenerateRoute,debugShowCheckedModeBanner: false,));
-}
-
-
-
-Route _onGenerateRoute(RouteSettings settings) {
-  if (settings.name == MainScreen.routeName) {
-    return MaterialPageRoute(
-      settings: settings,
-      builder: (context) {
-        return MainScreen();
-      },
-    );
-  }
-
-  else if (settings.name == ChatScreen.routeName){
-    final args = settings.arguments as ChatScreenArguments;
-    return MaterialPageRoute(
-      builder: (context) {
-        return ChatScreen(args.theUser);
-      },
-    );
-  }
-
-  return MaterialPageRoute(
-    settings: settings,
-    builder: (context) {
-      return SignInScreen();
-    },
-  );
-
+    home: App(),debugShowCheckedModeBanner: false,));
 }
 
 /// We are using a StatefulWidget such that we only create the [Future] once,

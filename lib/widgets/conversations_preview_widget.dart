@@ -4,6 +4,7 @@ import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ConversationsPreviewWidget extends StatefulWidget {
   const ConversationsPreviewWidget({Key? key}) : super(key: key);
@@ -55,8 +56,8 @@ class _ConversationsPreviewWidgetState
                 return GestureDetector(
                   onTap: () {
                     if (collocutor != null) {
-                      Navigator.pushNamed(context, ChatScreen.routeName,
-                          arguments: ChatScreenArguments(collocutor));
+                      navigator!.pushNamed( ChatScreen.routeName,
+                          arguments: collocutor);
                     }
                   },
                   child: Container(

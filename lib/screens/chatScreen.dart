@@ -10,15 +10,10 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'dart:convert';
 
-
-class ChatScreenArguments {
-  final InfoUser theUser;
-
-  ChatScreenArguments(this.theUser);
-}
+import 'package:get/get.dart';
 
 class ChatScreen extends StatefulWidget {
-   ChatScreen(this.theUser,{Key? key}) : conversationId='',super(key: key){
+   ChatScreen({Key? key}) :theUser=Get.arguments, conversationId='',super(key: key){
 
      conversationId =  ChatData().calculateConversationId(theUser.facebookId);
   }

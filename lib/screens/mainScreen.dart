@@ -10,6 +10,7 @@ import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/global_widgets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -52,8 +53,8 @@ class _MainScreenState extends State<MainScreen> with MountedStateMixin {
     if(messageReceived.userId != SettingsData().facebookId) {
       InfoUser? sender = ChatData().getUserById(messageReceived.userId);
       if(sender!=null && mounted){
-      Navigator.pushNamed(
-          context, ChatScreen.routeName, arguments: ChatScreenArguments(sender));}
+      navigator!.pushNamed(
+           ChatScreen.routeName, arguments: sender);}
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:get/get.dart';
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
   static const String routeName = '/signin_screen';
@@ -24,8 +25,7 @@ class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
 
   void signInListener(){
     if (SettingsData().registered==true){ //TODO login/registeration status
-      Navigator.pushReplacementNamed(
-          context, MainScreen.routeName);
+      navigator!.pushReplacementNamed(MainScreen.routeName);
     }
   }
 
