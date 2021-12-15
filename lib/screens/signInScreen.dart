@@ -171,8 +171,7 @@ class _SignInScreenState extends State<SignInScreen> with MountedStateMixin{
   void moveOnIfRegistered() async {
     await SettingsData().readSettingsFromShared();
     if(SettingsData().registered){
-      Navigator.pushReplacementNamed(
-          context, MainScreen.routeName);
+      navigator!.pushReplacementNamed(MainScreen.routeName);
     }
 
   }
