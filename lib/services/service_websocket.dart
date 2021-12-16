@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
+import 'package:dor_chat_client/services/notifications_controller.dart';
 
 class ServiceWebsocket {
 

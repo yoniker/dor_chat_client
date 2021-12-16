@@ -9,6 +9,7 @@ import 'package:dor_chat_client/models/persistentMessagesData.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:dor_chat_client/screens/signInScreen.dart';
+import 'package:dor_chat_client/services/notifications_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
@@ -83,6 +84,7 @@ class _AppState extends State<App>  with WidgetsBindingObserver
   Future<void> _initializeApp() async{ //TODO support error states
     await Firebase.initializeApp();
     await Hive.initFlutter();
+    await NotificationsController.instance.initialize();
     Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
     Hive.registerAdapter(InfoMessageAdapter());
     Hive.registerAdapter(InfoConversationAdapter());

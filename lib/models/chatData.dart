@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:dor_chat_client/models/infoMessageReceipt.dart';
 import 'package:dor_chat_client/models/persistentMessagesData.dart';
+import 'package:dor_chat_client/services/notifications_controller.dart';
 import 'package:dor_chat_client/services/service_websocket.dart';
 import 'package:tuple/tuple.dart';
 import 'package:dor_chat_client/models/infoConversation.dart';
@@ -119,10 +120,14 @@ class ChatData extends ChangeNotifier {
       getUsersFromServer();
       return;
     }
+
+    //If here then push notification is new message as all other notifications types were handled above this line
+
     final String senderId = message['user_id'];
       if(senderId!=SettingsData().facebookId){ //Update Users Box
         final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
         usersBox.put(sender.facebookId, sender); //Update users box
+        NotificationsController.instance.showNewMessageNotification(senderName: sender.name,senderId: senderId);
       }
       final InfoMessage messageReceived = InfoMessage.fromJson(message);
       addMessageToDB(messageReceived);
