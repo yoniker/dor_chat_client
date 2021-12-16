@@ -1,6 +1,7 @@
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
+import 'package:dor_chat_client/screens/mainScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert' as json;
@@ -18,7 +19,7 @@ class NotificationsController with WidgetsBindingObserver{
   static const String NEW_MESSAGE_NOTIFICATION = 'new_message_notification';
   static const String NOTIFICATION_TYPE = 'notification_type';
   static const String SENDER_ID = 'sender_id';
-  AppLifecycleState _appState=AppLifecycleState.resumed;
+  AppLifecycleState _appState=AppLifecycleState.inactive;
 
   AppLifecycleState get appState => _appState;
 
@@ -37,12 +38,14 @@ class NotificationsController with WidgetsBindingObserver{
 
   static final NotificationsController instance = NotificationsController._privateConstructor();
 
-  Future selectNotification(String? payload) async {
+  static Future selectNotification(String? payload) async {
     if(payload==null){return;}
     Map<String,dynamic> handleNotificationData = json.jsonDecode(payload);
+    print('$handleNotificationData');
     if(handleNotificationData[NOTIFICATION_TYPE]==NEW_MESSAGE_NOTIFICATION){
       String senderId = handleNotificationData[SENDER_ID]!;
       InfoUser? collocutor = ChatData().getUserById(senderId);
+
       if(collocutor!=null){
         navigator!.pushNamed(ChatScreen.routeName,arguments: collocutor);
       }
@@ -85,7 +88,22 @@ class NotificationsController with WidgetsBindingObserver{
       onSelectNotification: selectNotification
   );
 
+
+
   }
+
+
+  Future<bool> navigateChatOnBackgroundNotification()async{
+    final notificationAppLaunchDetails = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
+      navigator!.pushReplacementNamed(MainScreen.routeName); //So that the back button will go to main screen rather than /(splash/main screen)
+      selectNotification(notificationAppLaunchDetails!.payload);
+      return true;
+    }
+    return false;
+  }
+
+
 
   Future<void> showNewMessageNotification(
   {required String senderName, required String senderId}
@@ -114,7 +132,6 @@ class NotificationsController with WidgetsBindingObserver{
       NOTIFICATION_TYPE:NEW_MESSAGE_NOTIFICATION,
       SENDER_ID:senderId
     };
-    
     await flutterLocalNotificationsPlugin.show(
       0,
       'ChatDor',

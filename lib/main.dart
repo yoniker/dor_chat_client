@@ -83,17 +83,13 @@ class _AppState extends State<App>  with WidgetsBindingObserver
 
   Future<void> _initializeApp() async{ //TODO support error states
     await Firebase.initializeApp();
-    await Hive.initFlutter();
     await NotificationsController.instance.initialize();
-    Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
-    Hive.registerAdapter(InfoMessageAdapter());
-    Hive.registerAdapter(InfoConversationAdapter());
-    Hive.registerAdapter(InfoMessageReceiptAdapter());
-    await Hive.openBox<InfoConversation>(ChatData.CONVERSATIONS_BOXNAME);
-    await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);
+    await ChatData.initDB();
     await SettingsData().readSettingsFromShared();
     updateFcmToken();
-    Navigator.pushReplacementNamed(context, SignInScreen.routeName);
+
+    bool navigatingToChatScreen = await NotificationsController.instance.navigateChatOnBackgroundNotification();
+    if(!navigatingToChatScreen) {Navigator.pushReplacementNamed(context, SignInScreen.routeName);}
   }
 
 

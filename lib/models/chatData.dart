@@ -18,9 +18,25 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:convert';
 
 
-Future<void> handleBackgroundMessage(RemoteMessage message)async{
+Future<void> handleBackgroundMessage(RemoteMessage rawMessage)async{
   PersistMessages().writeShouldSync(true);
-}
+  print("SHUKI WOWOWOWOWOWOWOWOWOWO");
+  await ChatData.initDB();
+  await SettingsData().readSettingsFromShared();
+  print("It's not SHUKI TO BE HONEST IT'S SHUK SHUK SHUK");
+  var message = rawMessage.data;
+  print('SHUKI SHUKI MESSAGE: $message');
+  if(message['push_notification_type']=='new_message'){
+    final String senderId = message['user_id'];
+    if(senderId!=SettingsData().facebookId){
+      final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
+      print('SHUKI trying to do notification');
+      print('Would do it with ${sender.name} and ${sender.facebookId}');
+      await NotificationsController.instance.initialize();
+      NotificationsController.instance.showNewMessageNotification(senderName: sender.name, senderId: sender.facebookId);
+
+  }
+}}
 
 class ChatData extends ChangeNotifier {
 
@@ -29,6 +45,20 @@ class ChatData extends ChangeNotifier {
   Map<String,Tuple2<ValueListenable<Box>,int>> listenedValues = {};
   Map<String,bool> markingConversation = {};
 
+
+  static Future<void> initDB()async{
+    try{
+    await Hive.initFlutter();
+    Hive.registerAdapter(InfoUserAdapter()); //TODO should I initialize Hive within the singleton?
+    Hive.registerAdapter(InfoMessageAdapter());
+    Hive.registerAdapter(InfoConversationAdapter());
+    Hive.registerAdapter(InfoMessageReceiptAdapter());}
+    catch(_){}
+    try{
+    await Hive.openBox<InfoConversation>(ChatData.CONVERSATIONS_BOXNAME);
+    await Hive.openBox<InfoUser>(ChatData.USERS_BOXNAME);}
+    catch(_){}
+  }
 
   bool addMessageToDB(InfoMessage messageReceived,{String? otherParticipantsId}){
     bool needUpdateUsers = false;
