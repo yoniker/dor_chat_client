@@ -19,7 +19,7 @@ class NotificationsController with WidgetsBindingObserver{
   static const String NEW_MESSAGE_NOTIFICATION = 'new_message_notification';
   static const String NOTIFICATION_TYPE = 'notification_type';
   static const String SENDER_ID = 'sender_id';
-  AppLifecycleState _appState=AppLifecycleState.inactive;
+  AppLifecycleState _appState=AppLifecycleState.resumed;
 
   AppLifecycleState get appState => _appState;
 
@@ -27,7 +27,6 @@ class NotificationsController with WidgetsBindingObserver{
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _appState = state;
-    print('NOTIFICATIONS CENTRE App changed state; New state is $state');
   }
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
@@ -41,7 +40,6 @@ class NotificationsController with WidgetsBindingObserver{
   static Future selectNotification(String? payload) async {
     if(payload==null){return;}
     Map<String,dynamic> handleNotificationData = json.jsonDecode(payload);
-    print('$handleNotificationData');
     if(handleNotificationData[NOTIFICATION_TYPE]==NEW_MESSAGE_NOTIFICATION){
       String senderId = handleNotificationData[SENDER_ID]!;
       InfoUser? collocutor = ChatData().getUserById(senderId);
@@ -106,9 +104,9 @@ class NotificationsController with WidgetsBindingObserver{
 
 
   Future<void> showNewMessageNotification(
-  {required String senderName, required String senderId}
+  {required String senderName, required String senderId,bool discardIfResumed=true}
       )async{
-    if(_appState==AppLifecycleState.resumed){return;} //Don't show this notification if app is in foreground
+    if(discardIfResumed && _appState==AppLifecycleState.resumed){return;} //Don't show this notification if app is in foreground
     const AndroidNotificationDetails _androidNotificationDetails =
     AndroidNotificationDetails(
       'DorChat channel ID',

@@ -30,10 +30,7 @@ Future<void> handleBackgroundMessage(RemoteMessage rawMessage)async{
     final String senderId = message['user_id'];
     if(senderId!=SettingsData().facebookId){
       final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));
-      print('SHUKI trying to do notification');
-      print('Would do it with ${sender.name} and ${sender.facebookId}');
-      await NotificationsController.instance.initialize();
-      NotificationsController.instance.showNewMessageNotification(senderName: sender.name, senderId: sender.facebookId);
+      NotificationsController.instance.showNewMessageNotification(senderName: sender.name, senderId: sender.facebookId,discardIfResumed: false);
 
   }
 }}
@@ -222,6 +219,7 @@ class ChatData extends ChangeNotifier {
       listenedValues[conversationId] =  Tuple2(conversationsBox.listenable(keys:[conversationId]),0);
     }
     listenedValues[conversationId]!.item1.addListener(listener);
+    print('Added listener');
     listenedValues[conversationId]!.withItem2(listenedValues[conversationId]!.item2+1);
   }
 

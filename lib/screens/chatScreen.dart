@@ -35,11 +35,8 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
   void updateChatData() {
     List<InfoMessage> currentChatMessages = ChatData().messagesInConversation(
         widget.conversationId);
-    for(var x in currentChatMessages){
-      print(x.addedDate);
-    }
     _messages = currentChatMessages.map((message) => message.toUiMessage()).toList();
-    print('Dor');
+    print('Finished updating Chat Data');
 
   }
 
@@ -58,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
     print('going to listen to conversation ${widget.conversationId}');
     ChatData().markConversationAsRead(widget.conversationId).then((_)
     => ChatData().listenConversation(widget.conversationId,listenChat));
+    updateChatData();
 
 
     super.initState();
@@ -65,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
 
   @override
   Widget build(BuildContext context) {
-    updateChatData(); //TODO remove this after playing with UI
+
     return Scaffold(
       appBar: CustomAppBar(
         hasTopPadding: true,
@@ -81,12 +79,10 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
         },
         messages: _messages,
         onMessageTap: (message){
-          print(message.id+' Tapped!');
           ChatData().resendMessageIfError(widget.conversationId, message.id);
 
         },
         onMessageLongPress: (message){
-          print(message.id+' Long tapped');
           ChatData().resendMessageIfError(widget.conversationId, message.id);
         },
 
