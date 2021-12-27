@@ -2,6 +2,7 @@ import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/screens/chatScreen.dart';
 import 'package:dor_chat_client/screens/mainScreen.dart';
+import 'package:dor_chat_client/services/app_state_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert' as json;
@@ -19,9 +20,6 @@ class NotificationsController{
   static const String NEW_MESSAGE_NOTIFICATION = 'new_message_notification';
   static const String NOTIFICATION_TYPE = 'notification_type';
   static const String SENDER_ID = 'sender_id';
-  AppLifecycleState _appState=AppLifecycleState.resumed;
-
-  AppLifecycleState get appState => _appState;
 
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
@@ -99,7 +97,7 @@ class NotificationsController{
   Future<void> showNewMessageNotification(
   {required String senderName, required String senderId,bool discardIfResumed=true}
       )async{
-    if(discardIfResumed && _appState==AppLifecycleState.resumed){return;} //Don't show this notification if app is in foreground
+    if(discardIfResumed && AppStateInfo.instance.appState==AppLifecycleState.resumed){return;} //Don't show this notification if app is in foreground
     const AndroidNotificationDetails _androidNotificationDetails =
     AndroidNotificationDetails(
       'DorChat channel ID',

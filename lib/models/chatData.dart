@@ -149,7 +149,6 @@ class ChatData extends ChangeNotifier {
     }
 
     //If here then push notification is new message as all other notifications types were handled above this line
-
     final String senderId = message['user_id'];
       if(senderId!=SettingsData().facebookId){ //Update Users Box
         final InfoUser sender = InfoUser.fromJson(jsonDecode(message["sender_details"]));

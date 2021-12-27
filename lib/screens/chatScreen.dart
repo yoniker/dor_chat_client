@@ -2,6 +2,7 @@ import 'package:dor_chat_client/models/infoMessage.dart';
 import 'package:dor_chat_client/models/infoUser.dart';
 import 'package:dor_chat_client/models/chatData.dart';
 import 'package:dor_chat_client/models/settings_model.dart';
+import 'package:dor_chat_client/services/app_state_info.dart';
 import 'package:dor_chat_client/utils/mixins.dart';
 import 'package:dor_chat_client/widgets/custom_app_bar.dart';
 import 'package:dor_chat_client/widgets/profileDisplay.dart';
@@ -46,7 +47,9 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
     updateChatData();
 
   });
-    await ChatData().markConversationAsRead(widget.conversationId);
+
+    if(AppStateInfo.instance.appState==AppLifecycleState.resumed){
+    await ChatData().markConversationAsRead(widget.conversationId);}
   }
 
 
@@ -55,7 +58,12 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
   void initState() {
     print('going to listen to conversation ${widget.conversationId}');
     ChatData().markConversationAsRead(widget.conversationId).then((_)
-    => ChatData().listenConversation(widget.conversationId,listenConversation));
+    {ChatData().listenConversation(widget.conversationId,listenConversation);
+    AppStateInfo.instance.addListener(listenConversation);
+
+    }
+
+    );
     updateChatData();
     super.initState();
   }
@@ -93,8 +101,7 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
   @override
   void dispose() {
     ChatData().removeListenerConversation(widget.conversationId,listenConversation);
-    print('called remove listener ${widget.conversationId}');
-
+    AppStateInfo.instance.removeListener(listenConversation);
     super.dispose();
   }
 }
