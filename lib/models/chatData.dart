@@ -40,7 +40,7 @@ class ChatData extends ChangeNotifier {
   static const CONVERSATIONS_BOXNAME = 'conversations';
   static const USERS_BOXNAME = 'users';
   Map<String,Tuple2<ValueListenable<Box>,int>> listenedValues = {};
-  Map<String,bool> markingConversation = {};
+  Map<String,double> markingConversation = {};
 
 
   static Future<void> initDB()async{
@@ -303,7 +303,7 @@ class ChatData extends ChangeNotifier {
     List<InfoConversation> allConversations =conversationsBox.values.toList();
     //((messageA,messageB)=> (messageB.changedDate??messageB.addedDate??0)>(messageA.changedDate??messageA.addedDate??0)?1:-1);
     allConversations.sort((conversation1,conversation2)=>timeConversationLastChanged(conversation2)>timeConversationLastChanged(conversation1)?1:-1);
-    return allConversations;
+    return List.unmodifiable(allConversations);
   }
 
   bool conversationRead(InfoConversation conversation){
@@ -377,12 +377,7 @@ class ChatData extends ChangeNotifier {
     return controller.stream;
   }
 
-  Future<void> markConversationAsRead(String conversationId) async{ //TODO rethink this shit!
-    if(markingConversation.containsKey(conversationId) && markingConversation[conversationId]==true){
-      return;
-    }
-
-
+  Future<void> markConversationAsRead(String conversationId) async{
     String currentUserId = SettingsData().facebookId;
     InfoConversation? theConversation = conversationsBox.get(conversationId);
     if(theConversation == null) {return;}
@@ -391,15 +386,39 @@ class ChatData extends ChangeNotifier {
       var sender = message.userId;
       if(sender==SettingsData().facebookId){continue;}
       //We got to the first message not by the user. Since messages are sorted by change date, this is the most recent message
-      if(!message.receipts.containsKey(currentUserId) || message.receipts[currentUserId]!.readTime==0){
-        markingConversation[conversationId] = true;
-        await NetworkHelper.markConversationAsRead(conversationId);
-        Timer(Duration(seconds: 1),(){markingConversation[conversationId]=false;});
-
+      if(message.receipts.containsKey(currentUserId) && message.receipts[currentUserId]!.readTime>0){
+        return; //There is a read receipt already
       }
-      return;
-    }
 
+        double timeToTransmit= message.addedDate??message.changedDate??DateTime.now().millisecondsSinceEpoch/1000;
+        if(markingConversation.containsKey(conversationId) && markingConversation[conversationId]!>=timeToTransmit){
+          return; //We already sent a receipt for the conversation
+          }
+        markingConversation[conversationId] = timeToTransmit;
+
+      break;
+
+    }
+        bool markedSuccessfully = await NetworkHelper.markConversationAsRead(conversationId);
+        if(markedSuccessfully){
+          for(var message in theConversation.messages){
+            var sender = message.userId;
+            if(sender==SettingsData().facebookId){continue;}
+            if(!message.receipts.containsKey(currentUserId) || message.receipts[currentUserId]!.readTime==0){
+              if(!message.receipts.containsKey(currentUserId)){
+                message.receipts[currentUserId] = InfoMessageReceipt(userId: currentUserId, sentTime: 0, readTime: 0);
+              }
+              message.receipts[currentUserId]!.readTime = DateTime.now().millisecondsSinceEpoch/1000; //TODO Dor actually update messages in DB
+            }
+            }
+
+          conversationsBox.put(conversationId,theConversation);
+
+        }
+
+        else{
+        markingConversation[conversationId]=0.0; //There was an error
+            }
 
 
   }

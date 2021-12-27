@@ -7,6 +7,7 @@ import 'package:dor_chat_client/services/notifications_controller.dart';
 
 class ServiceWebsocket {
 
+
   late StreamController _streamController;
   late StreamSubscription subscription;
   bool _exposedStreamActive = false;

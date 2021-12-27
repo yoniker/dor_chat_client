@@ -92,10 +92,13 @@ class NetworkHelper {
 
   }
 
-  static Future<void> markConversationAsRead(String conversationId) async{
+  static Future<bool> markConversationAsRead(String conversationId) async{
     Uri syncChatDataUri = Uri.https(SERVER_ADDR, '/mark_conversation_read/${SettingsData().facebookId}/$conversationId');
     http.Response response = await http.get(syncChatDataUri); //TODO something when there's an error
-    return;
+    if(response.statusCode==200){
+      return true;
+    }
+    return false;
   }
 
 

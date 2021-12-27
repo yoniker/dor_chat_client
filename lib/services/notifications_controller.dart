@@ -14,7 +14,7 @@ enum NotificationType {
   newMatch,
 }
 
-class NotificationsController with WidgetsBindingObserver{
+class NotificationsController{
 
   static const String NEW_MESSAGE_NOTIFICATION = 'new_message_notification';
   static const String NOTIFICATION_TYPE = 'notification_type';
@@ -23,17 +23,10 @@ class NotificationsController with WidgetsBindingObserver{
 
   AppLifecycleState get appState => _appState;
 
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    _appState = state;
-  }
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  NotificationsController._privateConstructor(){
-    WidgetsBinding.instance!.addObserver(this);
-  }
+  NotificationsController._privateConstructor();
 
   static final NotificationsController instance = NotificationsController._privateConstructor();
 

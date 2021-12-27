@@ -40,12 +40,13 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
 
   }
 
-  void listenChat()async{
-    await ChatData().markConversationAsRead(widget.conversationId);
+  void listenConversation()async{
     setStateIfMounted((){
     print('updating chat info...');
     updateChatData();
+
   });
+    await ChatData().markConversationAsRead(widget.conversationId);
   }
 
 
@@ -54,10 +55,8 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
   void initState() {
     print('going to listen to conversation ${widget.conversationId}');
     ChatData().markConversationAsRead(widget.conversationId).then((_)
-    => ChatData().listenConversation(widget.conversationId,listenChat));
+    => ChatData().listenConversation(widget.conversationId,listenConversation));
     updateChatData();
-
-
     super.initState();
   }
 
@@ -93,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> with MountedStateMixin{
 
   @override
   void dispose() {
-    ChatData().removeListenerConversation(widget.conversationId,listenChat);
+    ChatData().removeListenerConversation(widget.conversationId,listenConversation);
     print('called remove listener ${widget.conversationId}');
 
     super.dispose();
